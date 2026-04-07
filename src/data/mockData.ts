@@ -25,6 +25,7 @@ export const generateMockCreditDataByField = (creditItems: string[], comparingFi
         return {
           fileId: f.id,
           fileName: f.name,
+          internalFile: '资信标.pdf',
           values: values
         };
       })
@@ -145,9 +146,9 @@ export const generateMockSimilarityMatrix = (files: any[]) => {
 };
 
 export const mockDuplicates = [
-  { id: 1, title: '施工组织设计-3.1节', similarity: '98%', lineA: 15, lineB: 18, text: '本工程基础采用旋挖钻孔灌注桩，桩径为800mm，桩长约25m...' },
-  { id: 2, title: '安全保证措施-5.2节', similarity: '100%', lineA: 42, lineB: 42, text: '建立健全安全生产责任制，项目经理为第一责任人，全面负责现场安全管理...' },
-  { id: 3, title: '质量控制标准-附录', similarity: '95%', lineA: 85, lineB: 90, text: '严格执行GB50300-2013建筑工程施工质量验收统一标准，确保工程合格率100%...' },
+  { id: 1, title: '施工组织设计-3.1节', internalFileA: '技术标.pdf', internalFileB: '技术标.pdf', similarity: '98%', lineA: 15, lineB: 18, text: '本工程基础采用旋挖钻孔灌注桩，桩径为800mm，桩长约25m...' },
+  { id: 2, title: '安全保证措施-5.2节', internalFileA: '安全管理体系.pdf', internalFileB: '安全管理体系.pdf', similarity: '100%', lineA: 42, lineB: 42, text: '建立健全安全生产责任制，项目经理为第一责任人，全面负责现场安全管理...' },
+  { id: 3, title: '质量控制标准-附录', internalFileA: '质量保证措施.pdf', internalFileB: '质量保证措施.pdf', similarity: '95%', lineA: 85, lineB: 90, text: '严格执行GB50300-2013建筑工程施工质量验收统一标准，确保工程合格率100%...' },
 ];
 
 export const mockHardwareData = {

@@ -96,6 +96,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                 <div className="w-full max-w-3xl">
                   <PdfView 
                     fileName={pdfPreviewState.fileName || ''} 
+                    internalFile={pdfPreviewState.internalFile}
                     value={pdfPreviewState.value || ''} 
                     type={pdfPreviewState.type || ''} 
                     isDuplicate={false} 
@@ -123,6 +124,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                 </div>
                 <PdfView 
                   fileName={pdfPreviewState.fileName || ''} 
+                  internalFile={pdfPreviewState.internalFile}
                   value={pdfPreviewState.value || ''} 
                   type={pdfPreviewState.type || ''} 
                   isDuplicate={false} 
@@ -146,6 +148,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                 </div>
                 <PdfView 
                   fileName={pdfPreviewState.duplicates[0].fileName} 
+                  internalFile={pdfPreviewState.duplicates[0].internalFile}
                   value={pdfPreviewState.duplicates[0].value} 
                   type={pdfPreviewState.type || ''} 
                   isDuplicate={true} 
@@ -157,6 +160,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
             <div className="w-full max-w-3xl">
                <PdfView 
                  fileName={pdfPreviewState.fileName || ''} 
+                 internalFile={pdfPreviewState.internalFile}
                  value={pdfPreviewState.value || ''} 
                  type={pdfPreviewState.type || ''} 
                  isDuplicate={false} 

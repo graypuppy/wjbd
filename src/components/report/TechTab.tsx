@@ -12,7 +12,8 @@ import {
   ChevronRight,
   ExternalLink,
   Grid3X3,
-  BrainCircuit
+  BrainCircuit,
+  CheckCircle2
 } from 'lucide-react';
 import { FileItem, PdfPreviewState } from '../../types';
 import { generateMockSimilarityMatrix } from '../../data/mockData';
@@ -36,6 +37,8 @@ const TechTab: React.FC<TechTabProps> = ({
 }) => {
   const [techFileA, setTechFileA] = useState(comparingFiles[0]?.id || '');
   const [techFileB, setTechFileB] = useState(comparingFiles[1]?.id || '');
+  const [internalFileA, setInternalFileA] = useState('技术标.pdf');
+  const [internalFileB, setInternalFileB] = useState('技术标.pdf');
   const [activeDuplicateId, setActiveDuplicateId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -46,6 +49,8 @@ const TechTab: React.FC<TechTabProps> = ({
 
   const handleDuplicateClick = (dup: any) => {
     setActiveDuplicateId(dup.id);
+    setInternalFileA(dup.internalFileA);
+    setInternalFileB(dup.internalFileB);
     setTimeout(() => {
       if (pdfARef.current) {
         const el = pdfARef.current.querySelector(`[data-line="${dup.lineA}"]`);
@@ -179,7 +184,8 @@ const TechTab: React.FC<TechTabProps> = ({
                 )}
               </div>
               <div className="p-4 space-y-3 flex-1">
-                {section.items.map((item: any) => (
+                {section.items.filter((item: any) => item.status !== 'pass').length > 0 ? (
+                  section.items.filter((item: any) => item.status !== 'pass').map((item: any) => (
                   <div 
                     key={item.id || item.keyword} 
                     onClick={() => handleTechItemClick(item)}
@@ -219,7 +225,15 @@ const TechTab: React.FC<TechTabProps> = ({
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 py-8">
+                    <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-500">未发现异常项</span>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -331,8 +345,18 @@ const TechTab: React.FC<TechTabProps> = ({
                       onClick={() => handleDuplicateClick(dup)}
                       className={`w-full text-left p-4 rounded-xl border transition-all ${activeDuplicateId === dup.id ? 'bg-indigo-50 border-indigo-300 shadow-sm ring-1 ring-indigo-500/20' : 'bg-white border-slate-200 hover:border-indigo-200 hover:shadow-sm'}`}
                     >
-                      <div className="font-bold text-sm text-slate-800 mb-2">{dup.title}</div>
-                      <div className="flex justify-between items-center text-xs">
+                      <div className="font-bold text-sm text-slate-800 mb-2 line-clamp-2" title={dup.text}>{dup.text}</div>
+                      <div className="text-xs text-slate-500 mb-2 space-y-1">
+                        <div className="flex items-center gap-1">
+                          <span className="w-4 h-4 rounded bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">A</span>
+                          <span className="truncate" title={dup.internalFileA}>{dup.internalFileA}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-4 h-4 rounded bg-red-100 text-red-700 flex items-center justify-center text-[10px] font-bold">B</span>
+                          <span className="truncate" title={dup.internalFileB}>{dup.internalFileB}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-xs border-t border-slate-100 pt-2">
                         <span className="text-slate-500">相似度</span>
                         <span className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100">{dup.similarity}</span>
                       </div>
@@ -345,13 +369,16 @@ const TechTab: React.FC<TechTabProps> = ({
               <div className="flex-1 flex bg-slate-200 p-5 gap-5 overflow-hidden">
                 {/* File A */}
                 <div className="flex-1 flex flex-col shadow-sm rounded-lg overflow-hidden">
-                  <div className="bg-white border-b border-slate-200 p-2 flex items-center">
+                  <div className="bg-white border-b border-slate-200 p-3 flex flex-col gap-2">
+                    <div className="text-xs font-bold text-slate-500 truncate" title={comparingFiles.find(f => f.id === techFileA)?.name}>
+                      {comparingFiles.find(f => f.id === techFileA)?.name}
+                    </div>
                     <select 
-                      value={techFileA} 
-                      onChange={e => setTechFileA(e.target.value)}
+                      value={internalFileA} 
+                      onChange={e => setInternalFileA(e.target.value)}
                       className="w-full p-2 rounded bg-slate-50 border border-slate-200 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      {comparingFiles.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                      {['技术标.pdf', '安全管理体系.pdf', '质量保证措施.pdf'].map(f => <option key={f} value={f}>{f}</option>)}
                     </select>
                   </div>
                   {renderMockPdfPage(techFileA, pdfARef, true)}
@@ -359,13 +386,16 @@ const TechTab: React.FC<TechTabProps> = ({
                 
                 {/* File B */}
                 <div className="flex-1 flex flex-col shadow-sm rounded-lg overflow-hidden">
-                  <div className="bg-white border-b border-slate-200 p-2 flex items-center">
+                  <div className="bg-white border-b border-slate-200 p-3 flex flex-col gap-2">
+                    <div className="text-xs font-bold text-slate-500 truncate" title={comparingFiles.find(f => f.id === techFileB)?.name}>
+                      {comparingFiles.find(f => f.id === techFileB)?.name}
+                    </div>
                     <select 
-                      value={techFileB} 
-                      onChange={e => setTechFileB(e.target.value)}
+                      value={internalFileB} 
+                      onChange={e => setInternalFileB(e.target.value)}
                       className="w-full p-2 rounded bg-slate-50 border border-slate-200 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      {comparingFiles.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                      {['技术标.pdf', '安全管理体系.pdf', '质量保证措施.pdf'].map(f => <option key={f} value={f}>{f}</option>)}
                     </select>
                   </div>
                   {renderMockPdfPage(techFileB, pdfBRef, false)}

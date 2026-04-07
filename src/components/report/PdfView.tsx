@@ -9,6 +9,7 @@ import {
 
 interface PdfViewProps {
   fileName: string;
+  internalFile?: string;
   value: string;
   type: string;
   isDuplicate?: boolean;
@@ -18,12 +19,15 @@ interface PdfViewProps {
 
 const PdfView: React.FC<PdfViewProps> = ({
   fileName,
+  internalFile,
   value,
   type,
   isDuplicate = false,
   contentType = 'text',
   activeSensitiveLoc,
 }) => {
+  const displayFileName = internalFile || fileName;
+  
   return (
     <div className="bg-white shadow-lg w-full min-h-full p-12 text-slate-800 relative">
       {/* Mock PDF Header */}
@@ -34,7 +38,7 @@ const PdfView: React.FC<PdfViewProps> = ({
         </div>
         <div className="text-right">
           <p className="font-serif font-bold text-lg">{isDuplicate ? '副本' : '正本'}</p>
-          <p className="text-sm text-slate-500">{fileName}</p>
+          <p className="text-sm text-slate-500">{displayFileName}</p>
         </div>
       </div>
 
@@ -71,7 +75,7 @@ const PdfView: React.FC<PdfViewProps> = ({
               致：<span className="font-bold">某某招标代理有限公司</span>
             </p>
             <p className="indent-8">
-              根据贵方为 <span className="font-bold">某某工程项目</span> 招标文件的要求，签字代表 <span className={`font-bold underline decoration-blue-500 decoration-2 underline-offset-4 px-1 ${isDuplicate ? 'bg-red-50 decoration-red-500' : 'bg-blue-50'}`}>{value}</span>（全名、职务）经正式授权并代表投标人 <span className="font-bold underline decoration-blue-500 decoration-2 underline-offset-4 bg-blue-50 px-1">{fileName.replace('.docx', '').replace('.pdf', '')}</span>（投标人名称）提交下述文件正本一份，副本四份。
+              根据贵方为 <span className="font-bold">某某工程项目</span> 招标文件的要求，签字代表 <span className={`font-bold underline decoration-blue-500 decoration-2 underline-offset-4 px-1 ${isDuplicate ? 'bg-red-50 decoration-red-500' : 'bg-blue-50'}`}>{value}</span>（全名、职务）经正式授权并代表投标人 <span className="font-bold underline decoration-blue-500 decoration-2 underline-offset-4 bg-blue-50 px-1">{displayFileName.replace('.docx', '').replace('.pdf', '')}</span>（投标人名称）提交下述文件正本一份，副本四份。
             </p>
           </>
         )}

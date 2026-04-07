@@ -9,6 +9,7 @@ interface CreditTabProps {
     files: {
       fileId: string;
       fileName: string;
+      internalFile?: string;
       values: string[];
     }[];
   }[];
@@ -61,10 +62,11 @@ const CreditTab: React.FC<CreditTabProps> = ({
                             <div 
                               key={valIdx}
                               onClick={() => {
-                                const duplicates = otherFilesWithValue.map(f => ({ fileName: f.fileName, value: val }));
+                                const duplicates = otherFilesWithValue.map(f => ({ fileName: f.fileName, internalFile: f.internalFile, value: val }));
                                 setPdfPreviewState({
                                   isOpen: true,
                                   fileName: fileData.fileName,
+                                  internalFile: fileData.internalFile,
                                   value: val,
                                   type: row.field,
                                   contentType: 'text',
