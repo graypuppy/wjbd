@@ -34,6 +34,7 @@ interface ProjectProps {
   handleStartComparisonClick: () => void;
   errorMsg: string | null;
   removeFile: (id: string) => void;
+  updateSubFileCategory: (fileId: string, subFileId: string, category: any) => void;
   activeTemplateId: string;
   applyTemplate: (id: string) => void;
   templates: Template[];
@@ -72,6 +73,7 @@ const Project: React.FC<ProjectProps> = ({
   handleStartComparisonClick,
   errorMsg,
   removeFile,
+  updateSubFileCategory,
   activeTemplateId,
   applyTemplate,
   templates,
@@ -188,33 +190,57 @@ const Project: React.FC<ProjectProps> = ({
             ) : (
               <div className="space-y-2">
                 {files.map(file => (
-                  <div key={file.id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg group transition-colors">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <File className="w-5 h-5 text-slate-400 shrink-0" />
-                      <div className="truncate">
-                        <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-xs text-slate-400">{formatSize(file.size)}</p>
+                  <div key={file.id} className="flex flex-col border-b border-slate-100 last:border-0">
+                    <div className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg group transition-colors">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <File className="w-5 h-5 text-slate-400 shrink-0" />
+                        <div className="truncate">
+                          <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-xs text-slate-400">{formatSize(file.size)}</p>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-4 shrink-0 pl-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${
+                          file.status === '已完成' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          file.status === '比对中' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                          'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}>
+                          {file.status === '比对中' && <Loader2 className="w-3 h-3 animate-spin" />}
+                          {file.status}
+                        </span>
+                        <button 
+                          onClick={() => removeFile(file.id)} 
+                          disabled={file.status === '比对中'}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all disabled:opacity-0"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 shrink-0 pl-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${
-                        file.status === '已完成' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                        file.status === '比对中' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                        'bg-slate-100 text-slate-600 border border-slate-200'
-                      }`}>
-                        {file.status === '比对中' && <Loader2 className="w-3 h-3 animate-spin" />}
-                        {file.status}
-                      </span>
-                      <button 
-                        onClick={() => removeFile(file.id)} 
-                        disabled={file.status === '比对中'}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all disabled:opacity-0"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {file.subFiles && file.subFiles.length > 0 && (
+                      <div className="ml-10 mb-3 pl-3 border-l-2 border-slate-100 space-y-2">
+                        {file.subFiles.map(subFile => (
+                          <div key={subFile.id} className="flex items-center justify-between bg-slate-50 p-2 rounded-md">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+                              <span className="text-xs text-slate-600 truncate" title={subFile.name}>{subFile.name}</span>
+                            </div>
+                            <select
+                              value={subFile.category}
+                              onChange={(e) => updateSubFileCategory(file.id, subFile.id, e.target.value)}
+                              className="text-xs border border-slate-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                              <option value="credit">资信标</option>
+                              <option value="tech">技术标</option>
+                              <option value="economic">经济标</option>
+                              <option value="other">其他</option>
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

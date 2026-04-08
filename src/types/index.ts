@@ -1,11 +1,20 @@
 import { ReactNode } from 'react';
 
+export type SubFileCategory = 'credit' | 'tech' | 'economic' | 'other';
+
+export type SubFile = {
+  id: string;
+  name: string;
+  category: SubFileCategory;
+};
+
 export type FileItem = { 
   id: string; 
   name: string; 
   size: number; 
   status: '未比对' | '比对中' | '已完成';
   supportedTypes?: string[];
+  subFiles?: SubFile[];
   risks?: {
     credit: number;
     tech: number;

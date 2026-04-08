@@ -86,6 +86,8 @@ import { useAppState } from './hooks/useAppState';
 import { getFileSupportedTypes, getFileExtension, getSupportedCheckTypes, getDisabledItems, formatSize, getTypeColorClass, getTasks } from './utils/fileUtils';
 
 export default function App() {
+  const [isParsing, setIsParsing] = useState(false);
+
   const {
     isLoggedIn, setIsLoggedIn,
     showLoginModal, setShowLoginModal,
@@ -621,7 +623,6 @@ export default function App() {
 
     const currentTotalSize = existingFiles.reduce((acc, f) => acc + f.size, 0);
     let newTotalSize = currentTotalSize;
-    const validFiles: FileItem[] = [];
 
     if (existingFiles.length + fileArray.length > MAX_FILES) {
       setErrorMsg(`最多只能上传 ${MAX_FILES} 个文件`);
@@ -629,37 +630,61 @@ export default function App() {
     }
 
     for (let i = 0; i < fileArray.length; i++) {
-      const file = fileArray[i];
-      newTotalSize += file.size;
+      newTotalSize += fileArray[i].size;
       if (newTotalSize > MAX_TOTAL_SIZE) {
         setErrorMsg(`总文件大小不能超过 500MB`);
         return;
       }
-      validFiles.push({
-        id: Math.random().toString(36).substring(7),
-        name: file.name,
-        size: file.size,
-        status: '未比对',
-        supportedTypes: getFileSupportedTypes(file.name)
-      });
     }
 
-    const updatedFiles = [...existingFiles, ...validFiles];
-    setFiles(updatedFiles);
-
-    // Filter out unsupported check types based on the newly added files
-    const supported = getSupportedCheckTypes(updatedFiles[0].name);
-    setSelectedCheckTypes(prev => prev.filter(t => supported.includes(t)));
-
-    const disabled = getDisabledItems(updatedFiles[0].name);
-    setSelectedTechItems(prev => prev.filter(item => !disabled.includes(item)));
-
-    // If coming from home page, set project name and navigate
-    if (currentPage === 'home' && validFiles.length > 0) {
-      const defaultName = `${validFiles[0].name}等${updatedFiles.length}份文件`;
+    // If coming from home page, set project name and navigate immediately
+    if (currentPage === 'home' && fileArray.length > 0) {
+      const defaultName = `${fileArray[0].name}等${existingFiles.length + fileArray.length}份文件`;
       setProjectName(defaultName);
       setCurrentPage('project');
     }
+
+    setIsParsing(true);
+
+    setTimeout(() => {
+      const validFiles: FileItem[] = [];
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        let subFiles = undefined;
+        const ext = getFileExtension(file.name).toLowerCase();
+        if (ext === 'gef' || ext === 'zip' || ext === 'rar') {
+          subFiles = [
+            { id: Math.random().toString(36).substring(7), name: '资信标.pdf', category: 'credit' },
+            { id: Math.random().toString(36).substring(7), name: '技术标.pdf', category: 'tech' },
+            { id: Math.random().toString(36).substring(7), name: '经济标.pdf', category: 'economic' },
+            { id: Math.random().toString(36).substring(7), name: '安全管理体系.pdf', category: 'tech' },
+            { id: Math.random().toString(36).substring(7), name: '质量保证措施.pdf', category: 'tech' },
+            { id: Math.random().toString(36).substring(7), name: '其他附件.pdf', category: 'other' },
+          ] as any;
+        }
+
+        validFiles.push({
+          id: Math.random().toString(36).substring(7),
+          name: file.name,
+          size: file.size,
+          status: '未比对',
+          supportedTypes: getFileSupportedTypes(file.name),
+          subFiles
+        });
+      }
+
+      const updatedFiles = [...existingFiles, ...validFiles];
+      setFiles(updatedFiles);
+
+      // Filter out unsupported check types based on the newly added files
+      const supported = getSupportedCheckTypes(updatedFiles[0].name);
+      setSelectedCheckTypes(prev => prev.filter(t => supported.includes(t)));
+
+      const disabled = getDisabledItems(updatedFiles[0].name);
+      setSelectedTechItems(prev => prev.filter(item => !disabled.includes(item)));
+      
+      setIsParsing(false);
+    }, 5000);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -689,6 +714,18 @@ export default function App() {
   const removeFile = (id: string) => {
     setFiles(files.filter(f => f.id !== id));
     setErrorMsg(null);
+  };
+
+  const updateSubFileCategory = (fileId: string, subFileId: string, category: any) => {
+    setFiles(files.map(f => {
+      if (f.id === fileId && f.subFiles) {
+        return {
+          ...f,
+          subFiles: f.subFiles.map(sf => sf.id === subFileId ? { ...sf, category } : sf)
+        };
+      }
+      return f;
+    }));
   };
 
   const handleStartComparisonClick = () => {
@@ -818,6 +855,7 @@ export default function App() {
               handleStartComparisonClick={handleStartComparisonClick}
               errorMsg={errorMsg}
               removeFile={removeFile}
+              updateSubFileCategory={updateSubFileCategory}
               activeTemplateId={activeTemplateId}
               applyTemplate={applyTemplate}
               templates={templates}
@@ -880,6 +918,30 @@ export default function App() {
               setActiveSensitiveLoc={setActiveSensitiveLoc}
               ALL_DEVICE_ITEMS={deviceMatrixItems}
             />
+          )}
+        </AnimatePresence>
+
+        {/* Global Parsing Overlay */}
+        <AnimatePresence>
+          {isParsing && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+            >
+              <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center max-w-sm w-full mx-4">
+                <div className="relative w-20 h-20 mb-6">
+                  <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+                  <FileText className="absolute inset-0 m-auto w-8 h-8 text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">正在解析文件</h3>
+                <p className="text-slate-500 text-center text-sm">
+                  系统正在深度拆解投标文件并自动分类子文件，请稍候...
+                </p>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </main>
