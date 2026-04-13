@@ -82,6 +82,9 @@ export function useAppState() {
   const [filterBiddingDoc, setFilterBiddingDoc] = useState(true);
   const [biddingDocFile, setBiddingDocFile] = useState<{id: string, name: string, size: number} | null>(null);
   const [biddingDocError, setBiddingDocError] = useState<string | null>(null);
+  
+  const [economicRegion, setEconomicRegion] = useState({ province: '山东省', city: '淄博市' });
+  const [economicListType, setEconomicListType] = useState('房建');
 
   // Purchase & Comparing State
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -148,6 +151,8 @@ export function useAppState() {
     filterBiddingDoc, setFilterBiddingDoc,
     biddingDocFile, setBiddingDocFile,
     biddingDocError, setBiddingDocError,
+    economicRegion, setEconomicRegion,
+    economicListType, setEconomicListType,
     showPurchaseModal, setShowPurchaseModal,
     selectedSku, setSelectedSku,
     comparingProgress, setComparingProgress,

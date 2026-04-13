@@ -21,6 +21,8 @@ import { FileItem, Template, PageType } from '../../types';
 import { ALL_CHECK_TYPES, ALL_CREDIT_ITEMS, ALL_TECH_ITEMS, ALL_ECONOMIC_ITEMS, ALL_DEVICE_ITEMS } from '../../constants';
 import { handleCheckTypeToggle } from '../../utils/checkTypeUtils';
 
+import { CustomSelect } from '../ui/CustomSelect';
+
 interface ProjectProps {
   setCurrentPage: (page: PageType) => void;
   isEditingName: boolean;
@@ -58,6 +60,10 @@ interface ProjectProps {
   biddingDocError: string | null;
   handleBiddingDocInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeBiddingDoc: () => void;
+  economicRegion: { province: string; city: string };
+  setEconomicRegion: (val: { province: string; city: string }) => void;
+  economicListType: string;
+  setEconomicListType: (val: string) => void;
 }
 
 const Project: React.FC<ProjectProps> = ({
@@ -97,6 +103,10 @@ const Project: React.FC<ProjectProps> = ({
   biddingDocError,
   handleBiddingDocInput,
   removeBiddingDoc,
+  economicRegion,
+  setEconomicRegion,
+  economicListType,
+  setEconomicListType,
 }) => {
   return (
     <motion.div 
@@ -361,6 +371,50 @@ const Project: React.FC<ProjectProps> = ({
                     仅山东、江苏地区清单支持。其余地区逐步完善中，敬请期待~
                   </span>
                 </div>
+
+                {selectedCheckTypes?.includes('经济标比对') && (
+                  <div className="flex items-center gap-6 bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-slate-600 shrink-0">比对地区:</span>
+                      <CustomSelect
+                        value={economicRegion.province}
+                        onChange={(val) => setEconomicRegion({...economicRegion, province: val})}
+                        options={[
+                          { label: '山东省', value: '山东省' },
+                          { label: '江苏省', value: '江苏省' },
+                        ]}
+                        className="w-24"
+                      />
+                      <CustomSelect
+                        value={economicRegion.city}
+                        onChange={(val) => setEconomicRegion({...economicRegion, city: val})}
+                        options={[
+                          { label: '淄博市', value: '淄博市' },
+                          { label: '济南市', value: '济南市' },
+                          { label: '青岛市', value: '青岛市' },
+                          { label: '南京市', value: '南京市' },
+                          { label: '苏州市', value: '苏州市' },
+                        ]}
+                        className="w-24"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-slate-600 shrink-0">清单类型:</span>
+                      <CustomSelect
+                        value={economicListType}
+                        onChange={(val) => setEconomicListType(val)}
+                        options={[
+                          { label: '房建', value: '房建' },
+                          { label: '交通', value: '交通' },
+                          { label: '水利', value: '水利' },
+                          { label: '公路', value: '公路' },
+                        ]}
+                        className="w-24"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-slate-50/80 rounded-lg p-5 border border-slate-100 flex flex-wrap gap-x-10 gap-y-4">
                   {ALL_ECONOMIC_ITEMS.map(item => {
                     const isSelected = selectedEconomicItems?.includes(item);

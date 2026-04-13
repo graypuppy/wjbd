@@ -127,6 +127,8 @@ export default function App() {
     filterBiddingDoc, setFilterBiddingDoc,
     biddingDocFile, setBiddingDocFile,
     biddingDocError, setBiddingDocError,
+    economicRegion, setEconomicRegion,
+    economicListType, setEconomicListType,
     showPurchaseModal, setShowPurchaseModal,
     selectedSku, setSelectedSku,
     comparingProgress, setComparingProgress,
@@ -879,6 +881,10 @@ export default function App() {
               removeBiddingDoc={removeBiddingDoc}
               handleBiddingDocInput={handleBiddingDocInput}
               biddingDocError={biddingDocError}
+              economicRegion={economicRegion}
+              setEconomicRegion={setEconomicRegion}
+              economicListType={economicListType}
+              setEconomicListType={setEconomicListType}
             />
           )}
 
