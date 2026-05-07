@@ -123,8 +123,11 @@ export default function App() {
     selectedTechItems, setSelectedTechItems,
     selectedEconomicItems, setSelectedEconomicItems,
     selectedDeviceItems, setSelectedDeviceItems,
-    threshold, setThreshold,
+    sentenceThreshold, setSentenceThreshold,
+    riskThreshold, setRiskThreshold,
     filterBiddingDoc, setFilterBiddingDoc,
+    excludeTableHeaders, setExcludeTableHeaders,
+    excludeTableTitles, setExcludeTableTitles,
     biddingDocFile, setBiddingDocFile,
     biddingDocError, setBiddingDocError,
     economicRegion, setEconomicRegion,
@@ -228,7 +231,8 @@ export default function App() {
         tech: [],
         economic: [],
         device: [],
-        threshold: 30,
+        sentenceThreshold: 80,
+        riskThreshold: 30,
         filterBiddingDoc: false
       }
     });
@@ -282,8 +286,11 @@ export default function App() {
       setSelectedTechItems(tpl.config.tech.filter((item: string) => !disabled.includes(item)));
       setSelectedEconomicItems(tpl.config.economic);
       setSelectedDeviceItems(tpl.config.device);
-      setThreshold(tpl.config.threshold);
+      setSentenceThreshold(tpl.config.sentenceThreshold);
+      setRiskThreshold(tpl.config.riskThreshold);
       setFilterBiddingDoc(tpl.config.filterBiddingDoc);
+      setExcludeTableHeaders(tpl.config.excludeTableHeaders || false);
+      setExcludeTableTitles(tpl.config.excludeTableTitles || false);
     }
   };
 
@@ -873,10 +880,16 @@ export default function App() {
               setSelectedEconomicItems={setSelectedEconomicItems}
               selectedDeviceItems={selectedDeviceItems}
               setSelectedDeviceItems={setSelectedDeviceItems}
-              threshold={threshold}
-              setThreshold={setThreshold}
+              sentenceThreshold={sentenceThreshold}
+              setSentenceThreshold={setSentenceThreshold}
+              riskThreshold={riskThreshold}
+              setRiskThreshold={setRiskThreshold}
               filterBiddingDoc={filterBiddingDoc}
               setFilterBiddingDoc={setFilterBiddingDoc}
+              excludeTableHeaders={excludeTableHeaders}
+              setExcludeTableHeaders={setExcludeTableHeaders}
+              excludeTableTitles={excludeTableTitles}
+              setExcludeTableTitles={setExcludeTableTitles}
               biddingDocFile={biddingDocFile}
               removeBiddingDoc={removeBiddingDoc}
               handleBiddingDocInput={handleBiddingDocInput}

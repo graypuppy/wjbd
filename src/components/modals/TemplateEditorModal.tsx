@@ -228,28 +228,109 @@ export default function TemplateEditorModal({
             </div>
           )}
 
-          {/* Threshold & AI */}
+          {/* Thresholds */}
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                相似度阈值 ({editingTemplate.config.threshold}%)
+                语句雷同判定阈值 ({editingTemplate.config.sentenceThreshold}%)
+              </label>
+              <input 
+                type="range" 
+                min="60" 
+                max="100" 
+                step="5"
+                value={editingTemplate.config.sentenceThreshold}
+                onChange={e => setEditingTemplate({
+                  ...editingTemplate,
+                  config: { ...editingTemplate.config, sentenceThreshold: parseInt(e.target.value) }
+                })}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
+                <span>60%</span>
+                <span>100%</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                整体重复风险阈值 ({editingTemplate.config.riskThreshold}%)
               </label>
               <input 
                 type="range" 
                 min="0" 
                 max="100" 
                 step="5"
-                value={editingTemplate.config.threshold}
+                value={editingTemplate.config.riskThreshold}
                 onChange={e => setEditingTemplate({
                   ...editingTemplate,
-                  config: { ...editingTemplate.config, threshold: parseInt(e.target.value) }
+                  config: { ...editingTemplate.config, riskThreshold: parseInt(e.target.value) }
                 })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500"
               />
               <div className="flex justify-between text-xs text-slate-400 mt-1">
-                <span>宽松 (0%)</span>
-                <span>严格 (100%)</span>
+                <span>0%</span>
+                <span>100%</span>
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div className="font-medium text-slate-700">仅比对招标文件对应清单</div>
+                <div className="text-xs text-slate-500">开启后将过滤掉招标文件外的清单项</div>
+              </div>
+              <button 
+                onClick={() => setEditingTemplate({
+                  ...editingTemplate,
+                  config: { ...editingTemplate.config, filterBiddingDoc: !editingTemplate.config.filterBiddingDoc }
+                })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  editingTemplate.config.filterBiddingDoc ? 'bg-indigo-600' : 'bg-slate-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  editingTemplate.config.filterBiddingDoc ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div className="font-medium text-slate-700">不对表格中的表头进行查重</div>
+                <div className="text-xs text-slate-500">技术标查重时忽略表格表头</div>
+              </div>
+              <button 
+                onClick={() => setEditingTemplate({
+                  ...editingTemplate,
+                  config: { ...editingTemplate.config, excludeTableHeaders: !editingTemplate.config.excludeTableHeaders }
+                })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  editingTemplate.config.excludeTableHeaders ? 'bg-indigo-600' : 'bg-slate-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  editingTemplate.config.excludeTableHeaders ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div className="font-medium text-slate-700">不对表格标题进行查重</div>
+                <div className="text-xs text-slate-500">技术标查重时忽略表格标题</div>
+              </div>
+              <button 
+                onClick={() => setEditingTemplate({
+                  ...editingTemplate,
+                  config: { ...editingTemplate.config, excludeTableTitles: !editingTemplate.config.excludeTableTitles }
+                })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  editingTemplate.config.excludeTableTitles ? 'bg-indigo-600' : 'bg-slate-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  editingTemplate.config.excludeTableTitles ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
               <div>

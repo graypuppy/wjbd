@@ -52,10 +52,16 @@ interface ProjectProps {
   setSelectedEconomicItems: (items: string[]) => void;
   selectedDeviceItems: string[];
   setSelectedDeviceItems: (items: string[]) => void;
-  threshold: number;
-  setThreshold: (val: number) => void;
+  sentenceThreshold: number;
+  setSentenceThreshold: (val: number) => void;
+  riskThreshold: number;
+  setRiskThreshold: (val: number) => void;
   filterBiddingDoc: boolean;
   setFilterBiddingDoc: (val: boolean) => void;
+  excludeTableHeaders: boolean;
+  setExcludeTableHeaders: (val: boolean) => void;
+  excludeTableTitles: boolean;
+  setExcludeTableTitles: (val: boolean) => void;
   biddingDocFile: { id: string; name: string; size: number } | null;
   biddingDocError: string | null;
   handleBiddingDocInput: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -95,10 +101,16 @@ const Project: React.FC<ProjectProps> = ({
   setSelectedEconomicItems,
   selectedDeviceItems,
   setSelectedDeviceItems,
-  threshold,
-  setThreshold,
+  sentenceThreshold,
+  setSentenceThreshold,
+  riskThreshold,
+  setRiskThreshold,
   filterBiddingDoc,
   setFilterBiddingDoc,
+  excludeTableHeaders,
+  setExcludeTableHeaders,
+  excludeTableTitles,
+  setExcludeTableTitles,
   biddingDocFile,
   biddingDocError,
   handleBiddingDocInput,
@@ -340,7 +352,35 @@ const Project: React.FC<ProjectProps> = ({
 
               {/* 技术标 */}
               <div className={`space-y-4 ${!selectedCheckTypes?.includes('技术标比对') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-                <h3 className="text-sm font-bold text-slate-800 border-l-4 border-emerald-500 pl-3 leading-none">技术标比对项</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-800 border-l-4 border-emerald-500 pl-3 leading-none">技术标比对项</h3>
+                  {selectedCheckTypes?.includes('技术标比对') && (
+                    <div className="flex items-center gap-6">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600"
+                          checked={excludeTableHeaders}
+                          onChange={(e) => setExcludeTableHeaders(e.target.checked)}
+                        />
+                        <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">
+                          不对表格中的表头进行查重
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600"
+                          checked={excludeTableTitles}
+                          onChange={(e) => setExcludeTableTitles(e.target.checked)}
+                        />
+                        <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">
+                          不对表格标题进行查重
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </div>
                 <div className="bg-slate-50/80 rounded-lg p-5 border border-slate-100 flex flex-wrap gap-x-10 gap-y-4">
                   {ALL_TECH_ITEMS.map(item => {
                     const isDisabled = disabledItems?.includes(item);
@@ -446,24 +486,71 @@ const Project: React.FC<ProjectProps> = ({
             {/* 高级设置与招标文件 */}
             <div className="pt-8 border-t border-slate-100 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {/* 雷同阈值 */}
-                <div className="space-y-4 col-span-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-800 border-l-4 border-slate-400 pl-3 leading-none">雷同判定阈值</h3>
-                    <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{threshold}%</span>
-                  </div>
-                  <div className="px-2">
-                    <input 
-                      type="range" 
-                      min="1" 
-                      max="100" 
-                      value={threshold} 
-                      onChange={(e) => setThreshold(parseInt(e.target.value))}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                    />
-                    <div className="flex justify-between mt-2">
-                      <span className="text-[10px] text-slate-400 font-medium">更严格</span>
-                      <span className="text-[10px] text-slate-400 font-medium">更宽松</span>
+                {/* 阈值设置 */}
+                <div className="space-y-6 col-span-2">
+                  <h3 className="text-sm font-bold text-slate-800 border-l-4 border-slate-400 pl-3 leading-none">雷同判定阈值</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-2">
+                    {/* 语句雷同判定阈值 */}
+                    <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100 relative group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-700">语句雷同判定阈值 <span className="text-slate-400 font-normal text-xs">(仅作用于技术标)</span></span>
+                          <div className="relative flex items-center cursor-help">
+                            <Info className="w-3.5 h-3.5 text-slate-400" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-slate-800 text-white text-[11px] rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+                              该阈值决定了技术标中单句或段落内容重复百分之多少才被判定为“雷同”。<br/><br/>
+                              例如设置为80%：一句话中如有80%以上内容与另一份标书完全一致，才会被标记为雷同段落。<br/>
+                              <span className="text-indigo-300">适用场景：若不希望常规套话(如法律声明)被标红，可适当调高此值。此阈值仅在技术标比对中生效。</span>
+                              <div className="absolute w-2 h-2 bg-slate-800 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{sentenceThreshold}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="60" 
+                        max="100" 
+                        value={sentenceThreshold} 
+                        onChange={(e) => setSentenceThreshold(parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                      />
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[10px] text-slate-400 font-medium">60% (严格，容错度低)</span>
+                        <span className="text-[10px] text-slate-400 font-medium">100% (宽松，必须完全一致)</span>
+                      </div>
+                    </div>
+
+                    {/* 重复风险阈值 */}
+                    <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100 relative group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-700">整体重复风险阈值 <span className="text-slate-400 font-normal text-xs">(仅作用于技术标)</span></span>
+                          <div className="relative flex items-center cursor-help">
+                            <Info className="w-3.5 h-3.5 text-slate-400" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-slate-800 text-white text-[11px] rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
+                              该阈值决定了技术标整份文件的综合重复率达到多少时，系统会将其判定为“高风险”并标红预警。<br/><br/>
+                              例如设置为30%：只有当两份标书的技术标部分整体雷同内容超过30%时，才会在报告中提示高风险(红色)。<br/>
+                              <span className="text-indigo-300">适用场景：根据各地区、各行业的查重要求调整红线预警标准。此阈值仅在技术标比对中生效。</span>
+                              <div className="absolute w-2 h-2 bg-slate-800 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-sm font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">{riskThreshold}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="100" 
+                        value={riskThreshold} 
+                        onChange={(e) => setRiskThreshold(parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500"
+                      />
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[10px] text-slate-400 font-medium">0% (极易触发红线)</span>
+                        <span className="text-[10px] text-slate-400 font-medium">100% (极难触发红线)</span>
+                      </div>
                     </div>
                   </div>
                 </div>

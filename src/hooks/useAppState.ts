@@ -78,8 +78,11 @@ export function useAppState() {
   const [selectedTechItems, setSelectedTechItems] = useState<string[]>(ALL_TECH_ITEMS);
   const [selectedEconomicItems, setSelectedEconomicItems] = useState<string[]>(ALL_ECONOMIC_ITEMS);
   const [selectedDeviceItems, setSelectedDeviceItems] = useState<string[]>(ALL_DEVICE_ITEMS);
-  const [threshold, setThreshold] = useState(30);
+  const [sentenceThreshold, setSentenceThreshold] = useState(80);
+  const [riskThreshold, setRiskThreshold] = useState(30);
   const [filterBiddingDoc, setFilterBiddingDoc] = useState(true);
+  const [excludeTableHeaders, setExcludeTableHeaders] = useState(false);
+  const [excludeTableTitles, setExcludeTableTitles] = useState(false);
   const [biddingDocFile, setBiddingDocFile] = useState<{id: string, name: string, size: number} | null>(null);
   const [biddingDocError, setBiddingDocError] = useState<string | null>(null);
   
@@ -147,8 +150,11 @@ export function useAppState() {
     selectedTechItems, setSelectedTechItems,
     selectedEconomicItems, setSelectedEconomicItems,
     selectedDeviceItems, setSelectedDeviceItems,
-    threshold, setThreshold,
+    sentenceThreshold, setSentenceThreshold,
+    riskThreshold, setRiskThreshold,
     filterBiddingDoc, setFilterBiddingDoc,
+    excludeTableHeaders, setExcludeTableHeaders,
+    excludeTableTitles, setExcludeTableTitles,
     biddingDocFile, setBiddingDocFile,
     biddingDocError, setBiddingDocError,
     economicRegion, setEconomicRegion,

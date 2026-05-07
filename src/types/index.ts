@@ -42,8 +42,11 @@ export type Template = {
     tech: string[];
     economic: string[];
     device: string[];
-    threshold: number;
+    sentenceThreshold: number;
+    riskThreshold: number;
     filterBiddingDoc: boolean;
+    excludeTableHeaders: boolean;
+    excludeTableTitles: boolean;
   };
 };
 

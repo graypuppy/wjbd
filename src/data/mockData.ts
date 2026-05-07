@@ -46,7 +46,7 @@ export const generateMockDeviceMatrixData = (comparingFiles: any[], ALL_DEVICE_I
       if (item === 'CPU序列号比对') return 'BFEBFBFF000906E3';
       if (item === '主板序列号比对') return `MB-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
       if (item === '文件操作来源比对') return 'Office 365 Pro';
-      if (item === '文件创建码比对') return `{${Math.random().toString(36).substr(2, 8)}-${Math.random().toString(36).substr(2, 4)}}`;
+      if (item === '文件特征码比对') return `{${Math.random().toString(36).substr(2, 8)}-${Math.random().toString(36).substr(2, 4)}}`;
       if (item === '文件生成锁号比对') return i === 0 || i === 2 ? 'GLD-LOCK-8821' : 'GLD-LOCK-9912';
       if (item === '机器特征码比对') return i < 2 ? 'HWID-A1B2-C3D4' : `HWID-${Math.random().toString(36).substr(2, 4).toUpperCase()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
       return `特征值 ${i}-${j}`;

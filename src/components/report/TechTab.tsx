@@ -89,11 +89,11 @@ const TechTab: React.FC<TechTabProps> = ({
          // Find other files that are not the current one
          const otherFiles = comparingFiles.filter(f => f.name !== currentFileName);
          if (otherFiles.length > 0) {
-           duplicates = [{
-             fileName: otherFiles[0].name,
+           duplicates = otherFiles.map(f => ({
+             fileName: f.name,
              internalFile: item.internalFile,
              value: item.name || item.keyword
-           }];
+           }));
          }
        }
 

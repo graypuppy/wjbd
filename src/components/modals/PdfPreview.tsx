@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   X, 
-  ShieldAlert 
+  ShieldAlert,
+  ChevronDown
 } from 'lucide-react';
 import { PdfPreviewState } from '../../types';
 import PdfView from '../report/PdfView';
@@ -20,6 +21,16 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
   activeSensitiveLoc,
   setActiveSensitiveLoc,
 }) => {
+  const [activeDuplicateIndex, setActiveDuplicateIndex] = useState(0);
+  const [showDuplicateSelect, setShowDuplicateSelect] = useState(false);
+
+  useEffect(() => {
+    if (pdfPreviewState?.isOpen) {
+      setActiveDuplicateIndex(0);
+      setShowDuplicateSelect(false);
+    }
+  }, [pdfPreviewState?.isOpen]);
+
   if (!pdfPreviewState || !pdfPreviewState.isOpen) return null;
 
   return (
@@ -132,28 +143,85 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                 />
               </div>
               
-              {/* Duplicate File (First one for now) */}
-              <div className="flex-1 min-w-0">
-                <div className="mb-2 font-bold text-slate-700 flex items-center gap-2">
-                  <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs border border-red-200">重复文件</span>
-                  <span className="truncate">
-                    {pdfPreviewState.duplicates[0].fileName}
-                    {pdfPreviewState.duplicates[0].internalFile && (
-                      <>
-                        <span className="text-slate-400 mx-1 font-normal text-sm">/</span>
-                        <span className="text-indigo-600">{pdfPreviewState.duplicates[0].internalFile}</span>
-                      </>
+              {/* Duplicate File */}
+              <div className="flex-1 min-w-0 flex flex-col">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-slate-700 w-full">
+                    <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs border border-red-200 shrink-0">重复文件</span>
+                    
+                    {pdfPreviewState.duplicates.length > 1 ? (
+                      <div className="relative flex-1 min-w-0">
+                        <button 
+                          onClick={() => setShowDuplicateSelect(!showDuplicateSelect)}
+                          className="flex items-center justify-between w-full text-left bg-white border border-slate-200 rounded px-2 py-1 text-sm hover:border-slate-300 focus:outline-none"
+                        >
+                          <span className="truncate">
+                            <span className="font-medium mr-1 text-slate-500">({activeDuplicateIndex + 1}/{pdfPreviewState.duplicates.length})</span>
+                            {pdfPreviewState.duplicates[activeDuplicateIndex].fileName}
+                            {pdfPreviewState.duplicates[activeDuplicateIndex].internalFile && (
+                              <>
+                                <span className="text-slate-400 mx-1 font-normal text-sm">/</span>
+                                <span className="text-indigo-600">{pdfPreviewState.duplicates[activeDuplicateIndex].internalFile}</span>
+                              </>
+                            )}
+                          </span>
+                          <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-1" />
+                        </button>
+                        
+                        {showDuplicateSelect && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-10" 
+                              onClick={() => setShowDuplicateSelect(false)}
+                            />
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 shadow-lg rounded-lg z-20 max-h-60 overflow-y-auto">
+                              {pdfPreviewState.duplicates.map((dup, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    setActiveDuplicateIndex(idx);
+                                    setShowDuplicateSelect(false);
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 first:rounded-t-lg last:rounded-b-lg ${idx === activeDuplicateIndex ? 'bg-red-50 text-red-700 font-medium' : 'text-slate-700'}`}
+                                >
+                                  <div className="truncate">
+                                    {dup.fileName}
+                                    {dup.internalFile && (
+                                      <>
+                                        <span className="text-slate-400 mx-1 font-normal text-xs">/</span>
+                                        <span className={idx === activeDuplicateIndex ? 'text-red-600' : 'text-indigo-600'}>{dup.internalFile}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="truncate text-sm">
+                        {pdfPreviewState.duplicates[0].fileName}
+                        {pdfPreviewState.duplicates[0].internalFile && (
+                          <>
+                            <span className="text-slate-400 mx-1 font-normal text-sm">/</span>
+                            <span className="text-indigo-600">{pdfPreviewState.duplicates[0].internalFile}</span>
+                          </>
+                        )}
+                      </span>
                     )}
-                  </span>
+                  </div>
                 </div>
-                <PdfView 
-                  fileName={pdfPreviewState.duplicates[0].fileName} 
-                  internalFile={pdfPreviewState.duplicates[0].internalFile}
-                  value={pdfPreviewState.duplicates[0].value} 
-                  type={pdfPreviewState.type || ''} 
-                  isDuplicate={true} 
-                  contentType={pdfPreviewState.contentType} 
-                />
+                <div className="flex-1">
+                  <PdfView 
+                    fileName={pdfPreviewState.duplicates[activeDuplicateIndex].fileName} 
+                    internalFile={pdfPreviewState.duplicates[activeDuplicateIndex].internalFile}
+                    value={pdfPreviewState.duplicates[activeDuplicateIndex].value} 
+                    type={pdfPreviewState.type || ''} 
+                    isDuplicate={true} 
+                    contentType={pdfPreviewState.contentType} 
+                  />
+                </div>
               </div>
             </div>
           ) : (
