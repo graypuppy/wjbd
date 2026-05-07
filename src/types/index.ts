@@ -59,6 +59,7 @@ export type PdfPreviewState = {
   value: string;
   type: string;
   contentType?: 'text' | 'image' | 'table' | 'sensitive';
-  duplicates?: { fileName: string; internalFile?: string; value: string }[];
+  duplicates?: { fileName: string; internalFile?: string; value: string; occurrencesCount?: number }[];
   item?: any;
+  occurrencesCount?: number;
 };

@@ -113,6 +113,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                     isDuplicate={false} 
                     contentType={pdfPreviewState.contentType} 
                     activeSensitiveLoc={activeSensitiveLoc} 
+                    occurrencesCount={pdfPreviewState.occurrencesCount}
                   />
                 </div>
               </div>
@@ -139,7 +140,8 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                   value={pdfPreviewState.value || ''} 
                   type={pdfPreviewState.type || ''} 
                   isDuplicate={false} 
-                  contentType={pdfPreviewState.contentType} 
+                  contentType={pdfPreviewState.contentType}
+                  occurrencesCount={pdfPreviewState.occurrencesCount} 
                 />
               </div>
               
@@ -220,6 +222,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                     type={pdfPreviewState.type || ''} 
                     isDuplicate={true} 
                     contentType={pdfPreviewState.contentType} 
+                    occurrencesCount={pdfPreviewState.duplicates[activeDuplicateIndex].occurrencesCount}
                   />
                 </div>
               </div>
@@ -233,6 +236,7 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({
                  type={pdfPreviewState.type || ''} 
                  isDuplicate={false} 
                  contentType={pdfPreviewState.contentType} 
+                 occurrencesCount={pdfPreviewState.occurrencesCount}
                />
             </div>
           )}

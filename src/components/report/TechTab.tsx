@@ -92,7 +92,8 @@ const TechTab: React.FC<TechTabProps> = ({
            duplicates = otherFiles.map(f => ({
              fileName: f.name,
              internalFile: item.internalFile,
-             value: item.name || item.keyword
+             value: item.name || item.keyword,
+             occurrencesCount: (f.name.length % 2) + 2
            }));
          }
        }
@@ -118,6 +119,7 @@ const TechTab: React.FC<TechTabProps> = ({
         value: item.name || item.keyword,
         type: item.type === 'image' ? '图片查重' : item.type === 'ocr' ? 'OCR查重' : item.type === 'signature' ? '签章查重' : item.type === 'table' ? '表格查重' : item.type === 'sensitive' ? '敏感信息查重' : item.type,
         contentType: contentType,
+        occurrencesCount: (currentFileName.length % 3) + 2,
         duplicates: duplicates,
         item: item
       });

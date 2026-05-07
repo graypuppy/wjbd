@@ -15,6 +15,7 @@ interface PdfViewProps {
   isDuplicate?: boolean;
   contentType?: 'text' | 'image' | 'table' | 'sensitive';
   activeSensitiveLoc?: number | null;
+  occurrencesCount?: number;
 }
 
 const PdfView: React.FC<PdfViewProps> = ({
@@ -25,11 +26,41 @@ const PdfView: React.FC<PdfViewProps> = ({
   isDuplicate = false,
   contentType = 'text',
   activeSensitiveLoc,
+  occurrencesCount = 1,
 }) => {
   const displayFileName = internalFile || fileName;
+  const [activeOccurrence, setActiveOccurrence] = React.useState(0);
   
+  // Reset occurrence when value or file changes
+  React.useEffect(() => {
+    setActiveOccurrence(0);
+  }, [value, fileName, internalFile]);
+
   return (
     <div className="bg-white shadow-lg w-full min-h-full p-12 text-slate-800 relative">
+      {/* Occurrences Navigation */}
+      {occurrencesCount > 1 && contentType !== 'sensitive' && (
+        <div className="absolute top-4 right-4 bg-slate-800 text-white px-3 py-1.5 rounded-lg flex items-center gap-3 shadow-xl z-10 transition-opacity">
+          <span className="text-xs">第 <span className="font-bold text-blue-300">{activeOccurrence + 1}</span> / {occurrencesCount} 处</span>
+          <div className="flex gap-1 border-l border-slate-600 pl-2">
+            <button 
+              onClick={() => setActiveOccurrence(Math.max(0, activeOccurrence - 1))}
+              disabled={activeOccurrence === 0}
+              className="p-1 hover:bg-slate-700 disabled:opacity-30 rounded transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+            </button>
+            <button 
+              onClick={() => setActiveOccurrence(Math.min(occurrencesCount - 1, activeOccurrence + 1))}
+              disabled={activeOccurrence === occurrencesCount - 1}
+              className="p-1 hover:bg-slate-700 disabled:opacity-30 rounded transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mock PDF Header */}
       <div className="border-b-2 border-slate-800 pb-4 mb-8 flex justify-between items-end">
         <div>

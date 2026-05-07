@@ -62,7 +62,13 @@ const CreditTab: React.FC<CreditTabProps> = ({
                             <div 
                               key={valIdx}
                               onClick={() => {
-                                const duplicates = otherFilesWithValue.map(f => ({ fileName: f.fileName, internalFile: f.internalFile, value: val }));
+                                const generateOccurrences = (str: string) => (str.length % 3) + 2; // Returns 2 to 4
+                                const duplicates = otherFilesWithValue.map(f => ({ 
+                                  fileName: f.fileName, 
+                                  internalFile: f.internalFile, 
+                                  value: val,
+                                  occurrencesCount: generateOccurrences(f.fileName)
+                                }));
                                 setPdfPreviewState({
                                   isOpen: true,
                                   fileName: fileData.fileName,
@@ -70,6 +76,7 @@ const CreditTab: React.FC<CreditTabProps> = ({
                                   value: val,
                                   type: row.field,
                                   contentType: 'text',
+                                  occurrencesCount: generateOccurrences(fileData.fileName),
                                   duplicates: isDup ? duplicates : undefined
                                 });
                               }}
