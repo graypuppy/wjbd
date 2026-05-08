@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Search, Lock, Loader2 } from 'lucide-react';
+import { Search, Lock, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageType } from '../../types';
 
 interface HistoryProps {
@@ -16,6 +16,11 @@ const History: React.FC<HistoryProps> = ({
   setCurrentPage,
   historyItems,
 }) => {
+  const [historyPage, setHistoryPage] = useState(1);
+  const itemsPerPage = 10;
+  const paginatedHistory = historyItems.slice((historyPage - 1) * itemsPerPage, historyPage * itemsPerPage);
+  const totalPages = Math.ceil(historyItems.length / itemsPerPage);
+
   return (
     <motion.div
       key="history"
@@ -61,7 +66,7 @@ const History: React.FC<HistoryProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {historyItems.map(record => (
+                  {paginatedHistory.map(record => (
                     <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-3 text-sm font-semibold text-slate-800">{record.name}</td>
                       <td className="py-3 text-sm font-medium text-slate-500">{record.id}</td>
@@ -99,6 +104,34 @@ const History: React.FC<HistoryProps> = ({
                   ))}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                  <div className="text-sm text-slate-500">
+                    共 {historyItems.length} 条记录
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                      disabled={historyPage === 1}
+                      className="p-1 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-medium text-slate-700 px-2">
+                      {historyPage} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setHistoryPage(p => Math.min(totalPages, p + 1))}
+                      disabled={historyPage === totalPages}
+                      className="p-1 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

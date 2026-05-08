@@ -4,6 +4,7 @@ import {
   UploadCloud, 
   CheckCircle2, 
   ChevronRight, 
+  ChevronLeft,
   History, 
   Bell, 
   AlertCircle, 
@@ -45,11 +46,16 @@ const Home: React.FC<HomeProps> = ({
 }) => {
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const itemsPerPage = 5;
 
   const handleNewsClick = (news: any) => {
     setSelectedNews(news);
     setIsNewsModalOpen(true);
   };
+
+  const paginatedHistory = historyItems.slice((historyPage - 1) * itemsPerPage, historyPage * itemsPerPage);
+  const totalPages = Math.ceil(historyItems.length / itemsPerPage);
 
   return (
     <motion.div 
@@ -190,7 +196,7 @@ const Home: React.FC<HomeProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {historyItems.map((item) => (
+                      {paginatedHistory.map((item) => (
                         <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3 px-4 min-w-[200px]">
                             <div className="font-medium text-slate-800">{item.name}</div>
@@ -230,6 +236,34 @@ const Home: React.FC<HomeProps> = ({
                       ))}
                     </tbody>
                   </table>
+                  
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50">
+                      <div className="text-sm text-slate-500">
+                        共 {historyItems.length} 条记录
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                          disabled={historyPage === 1}
+                          className="p-1 rounded-md border border-slate-300 text-slate-600 hover:bg-white disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-sm font-medium text-slate-700">
+                          {historyPage} / {totalPages}
+                        </span>
+                        <button
+                          onClick={() => setHistoryPage(p => Math.min(totalPages, p + 1))}
+                          disabled={historyPage === totalPages}
+                          className="p-1 rounded-md border border-slate-300 text-slate-600 hover:bg-white disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

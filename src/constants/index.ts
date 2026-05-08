@@ -52,6 +52,9 @@ export const HISTORY_ITEMS = [
   { id: 'PRJ-20260225-03', name: '年度采购合同审查', date: '2026-02-25 09:15', status: '检查中', risk: '-', files: 2 },
   { id: 'PRJ-20260220-02', name: 'Q1季度财务报表核对', date: '2026-02-20 16:45', status: '已完成', risk: '低风险', files: 5 },
   { id: 'PRJ-20260215-01', name: '某住宅楼项目', date: '2026-02-15 14:20', status: '已完成', risk: '中风险', files: 4 },
+  { id: 'PRJ-20260210-01', name: '2026年度预算审批附件', date: '2026-02-10 11:20', status: '已完成', risk: '低风险', files: 2 },
+  { id: 'PRJ-20260205-01', name: '某软件开发外包合同', date: '2026-02-05 16:10', status: '已完成', risk: '中风险', files: 3 },
+  { id: 'PRJ-20260128-01', name: '营销策划方案比对', date: '2026-01-28 09:40', status: '已完成', risk: '低风险', files: 2 },
 ];
 
 export const DEFAULT_TEMPLATES: Template[] = [

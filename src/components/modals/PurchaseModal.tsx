@@ -15,12 +15,14 @@ type ViewState = 'main' | 'transfer' | 'records' | 'coupons';
 export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelectedSku, onPaymentSuccess }: PurchaseModalProps) {
   const [view, setView] = useState<ViewState>('main');
   const [showTransferAlert, setShowTransferAlert] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay'>('wechat');
 
   // Reset view when modal opens/closes
   React.useEffect(() => {
     if (isOpen) {
       setView('main');
       setShowTransferAlert(false);
+      setPaymentMethod('wechat');
     }
   }, [isOpen]);
 
@@ -147,14 +149,28 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
                         </div>
                       </div>
                       <div>
-                        <div className="text-slate-600 flex items-baseline gap-2">
+                        <div className="text-slate-600 flex items-baseline gap-2 mb-3">
                           需支付: <span className="text-3xl font-bold text-[#D97706]">¥{selectedSku === 'month' ? '299' : '20'}</span>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 text-sm text-slate-700">
-                          <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                          微信支付
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => setPaymentMethod('wechat')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-colors ${paymentMethod === 'wechat' ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center ${paymentMethod === 'wechat' ? 'bg-green-500 text-white' : 'border border-slate-300'}`}>
+                              {paymentMethod === 'wechat' && <Check className="w-3 h-3" />}
+                            </div>
+                            <span className="text-sm font-medium">微信支付</span>
+                          </button>
+                          <button 
+                            onClick={() => setPaymentMethod('alipay')}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-colors ${paymentMethod === 'alipay' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center ${paymentMethod === 'alipay' ? 'bg-blue-500 text-white' : 'border border-slate-300'}`}>
+                              {paymentMethod === 'alipay' && <Check className="w-3 h-3" />}
+                            </div>
+                            <span className="text-sm font-medium">支付宝</span>
+                          </button>
                         </div>
                       </div>
                     </div>
