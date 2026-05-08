@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Check, ChevronRight } from 'lucide-react';
+import { X, Check, ChevronRight, ChevronLeft, Loader2, AlertCircle, Wallet, CheckCircle, XCircle } from 'lucide-react';
 
 export type PurchaseViewState = 'main' | 'transfer' | 'records' | 'coupons';
 
@@ -18,6 +18,10 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
   const [showTransferAlert, setShowTransferAlert] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay'>('wechat');
   const [recordsTab, setRecordsTab] = useState<'recharge' | 'usage'>('recharge');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'paying' | 'failed' | 'success'>('idle');
+  const [paymentSimulationResult, setPaymentSimulationResult] = useState<'success' | 'failed'>('success');
+  const [rechargePage, setRechargePage] = useState(1);
+  const [usagePage, setUsagePage] = useState(1);
 
   // Reset view when modal opens/closes
   React.useEffect(() => {
@@ -25,14 +29,37 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
       setView(initialView);
       setShowTransferAlert(false);
       setPaymentMethod('wechat');
+      setPaymentStatus('idle');
+      setPaymentSimulationResult('success');
     }
   }, [isOpen, initialView]);
+
+  // Handle successful payment delay
+  React.useEffect(() => {
+    if (paymentStatus === 'paying') {
+      const timer = setTimeout(() => {
+        setPaymentStatus(paymentSimulationResult);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+    if (paymentStatus === 'success') {
+      const timer = setTimeout(() => {
+        onPaymentSuccess();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStatus, paymentSimulationResult, onPaymentSuccess]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white w-[800px] rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <div className="bg-white w-[800px] rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 relative">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <h3 className="text-lg font-medium text-slate-800">
@@ -141,12 +168,17 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
                   {/* Payment Area */}
                   <div className="bg-white mt-4 p-6 rounded-lg border border-slate-200 shadow-sm flex justify-between items-center">
                     <div className="flex gap-6 items-center">
-                      {/* QR Code Placeholder */}
-                      <div className="w-32 h-32 border border-slate-200 rounded p-1 relative group bg-white">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=simulate_payment" alt="QR Code" className="w-full h-full opacity-50" />
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/80">
-                          <button onClick={onPaymentSuccess} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded shadow-sm hover:bg-blue-700">
-                            模拟支付成功
+                      {/* QR Code Area */}
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-32 h-32 border border-slate-200 rounded p-1 flex items-center justify-center bg-white overflow-hidden">
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=simulate_payment_${paymentMethod}`} alt="QR Code" className="w-full h-full opacity-80" />
+                        </div>
+                        <div className="flex gap-2 w-full">
+                          <button onClick={() => { setPaymentSimulationResult('success'); setPaymentStatus('paying'); }} className="text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1.5 rounded transition-colors flex-1 border border-emerald-100 flex items-center justify-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> 扫码成功
+                          </button>
+                          <button onClick={() => { setPaymentSimulationResult('failed'); setPaymentStatus('paying'); }} className="text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1.5 rounded transition-colors flex-1 border border-rose-100 flex items-center justify-center gap-1">
+                            <XCircle className="w-3 h-3" /> 扫码失败
                           </button>
                         </div>
                       </div>
@@ -279,7 +311,7 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
                             <span className="font-semibold text-indigo-700">剩余 30 天</span>
                           </div>
                           <div className="text-sm flex items-center justify-between">
-                            <span className="text-slate-600">单次套餐:</span>
+                            <span className="text-slate-600">剩余次数:</span>
                             <span className="font-semibold text-indigo-700">剩余 3 次</span>
                           </div>
                         </div>
@@ -304,80 +336,120 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
                        </div>
 
                        {recordsTab === 'recharge' && (
-                         <div className="border border-slate-200 rounded-lg overflow-hidden shrink-0">
-                           <table className="w-full text-left text-sm">
-                             <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                               <tr>
-                                 <th className="px-5 py-3.5 font-medium">充值时间</th>
-                                 <th className="px-5 py-3.5 font-medium">商品说明</th>
-                                 <th className="px-5 py-3.5 font-medium">金额</th>
-                                 <th className="px-5 py-3.5 font-medium">状态</th>
-                               </tr>
-                             </thead>
-                             <tbody className="divide-y divide-slate-100">
-                               <tr className="hover:bg-slate-50/50 transition-colors">
-                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-05-01 10:23:45</td>
-                                 <td className="px-5 py-3.5 text-slate-900 leading-snug">
-                                   包月套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">时长: 30天 (无限次)</span>
-                                 </td>
-                                 <td className="px-5 py-3.5 text-slate-900 font-medium">¥299.00</td>
-                                 <td className="px-5 py-3.5 text-green-600 font-medium whitespace-nowrap"><span className="flex items-center gap-1"><Check className="w-4 h-4"/> 成功</span></td>
-                               </tr>
-                               <tr className="hover:bg-slate-50/50 transition-colors">
-                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-04-15 14:12:00</td>
-                                 <td className="px-5 py-3.5 text-slate-900 leading-snug">
-                                   单次套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">包含: 5次</span>
-                                 </td>
-                                 <td className="px-5 py-3.5 text-slate-900 font-medium">¥100.00</td>
-                                 <td className="px-5 py-3.5 text-green-600 font-medium whitespace-nowrap"><span className="flex items-center gap-1"><Check className="w-4 h-4"/> 成功</span></td>
-                               </tr>
-                               <tr className="hover:bg-slate-50/50 transition-colors">
-                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-03-01 09:30:00</td>
-                                 <td className="px-5 py-3.5 text-slate-900 leading-snug">
-                                   单次套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">包含: 1次</span>
-                                 </td>
-                                 <td className="px-5 py-3.5 text-slate-900 font-medium">¥20.00</td>
-                                 <td className="px-5 py-3.5 text-green-600 font-medium whitespace-nowrap"><span className="flex items-center gap-1"><Check className="w-4 h-4"/> 成功</span></td>
-                               </tr>
-                             </tbody>
-                           </table>
+                         <div className="flex flex-col gap-4">
+                           <div className="border border-slate-200 rounded-lg overflow-hidden shrink-0">
+                             <table className="w-full text-left text-sm">
+                               <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                 <tr>
+                                   <th className="px-5 py-3.5 font-medium">充值时间</th>
+                                   <th className="px-5 py-3.5 font-medium">商品说明</th>
+                                   <th className="px-5 py-3.5 font-medium">金额</th>
+                                 </tr>
+                               </thead>
+                               <tbody className="divide-y divide-slate-100">
+                                 <tr className="hover:bg-slate-50/50 transition-colors">
+                                   <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-05-01 10:23:45</td>
+                                   <td className="px-5 py-3.5 text-slate-900 leading-snug">
+                                     包月套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">时长: 30天 (无限次)</span>
+                                   </td>
+                                   <td className="px-5 py-3.5 text-slate-900 font-medium">¥299.00</td>
+                                 </tr>
+                                 <tr className="hover:bg-slate-50/50 transition-colors">
+                                   <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-04-15 14:12:00</td>
+                                   <td className="px-5 py-3.5 text-slate-900 leading-snug">
+                                     单次套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">包含: 5次</span>
+                                   </td>
+                                   <td className="px-5 py-3.5 text-slate-900 font-medium">¥100.00</td>
+                                 </tr>
+                                 <tr className="hover:bg-slate-50/50 transition-colors">
+                                   <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-03-01 09:30:00</td>
+                                   <td className="px-5 py-3.5 text-slate-900 leading-snug">
+                                     单次套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">包含: 1次</span>
+                                   </td>
+                                   <td className="px-5 py-3.5 text-slate-900 font-medium">¥20.00</td>
+                                 </tr>
+                               </tbody>
+                             </table>
+                           </div>
+                           <div className="flex items-center justify-between text-sm text-slate-500 px-1">
+                             <div>共 3 条记录</div>
+                             <div className="flex items-center gap-2">
+                               <button 
+                                 disabled={rechargePage === 1}
+                                 onClick={() => setRechargePage(p => Math.max(1, p - 1))}
+                                 className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                               >
+                                 <ChevronLeft className="w-4 h-4" />
+                               </button>
+                               <span className="font-medium text-slate-700">{rechargePage} / 1</span>
+                               <button 
+                                 disabled={rechargePage === 1}
+                                 onClick={() => setRechargePage(p => p + 1)}
+                                 className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                               >
+                                 <ChevronRight className="w-4 h-4" />
+                               </button>
+                             </div>
+                           </div>
                          </div>
                        )}
 
                        {recordsTab === 'usage' && (
-                         <div className="border border-slate-200 rounded-lg overflow-hidden shrink-0">
-                           <table className="w-full text-left text-sm table-fixed">
-                             <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                               <tr>
-                                 <th className="px-5 py-3.5 font-medium w-[140px]">比对时间</th>
-                                 <th className="px-5 py-3.5 font-medium">项目名称</th>
-                                 <th className="px-5 py-3.5 font-medium w-[150px]">消耗扣款</th>
-                               </tr>
-                             </thead>
-                             <tbody className="divide-y divide-slate-100">
-                               <tr className="hover:bg-slate-50/50 transition-colors">
-                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-05-02 11:15</td>
-                                 <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="某市第一人民医院门诊楼新建工程">某市第一人民医院门诊楼新建工程</td>
-                                 <td className="px-5 py-3.5 text-slate-600">
-                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 whitespace-nowrap border border-indigo-100">包月畅用 (不扣次)</span>
-                                 </td>
-                               </tr>
-                               <tr className="hover:bg-slate-50/50 transition-colors">
-                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-04-16 09:40</td>
-                                 <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="《产品需求文档(PRD)》比对">《产品需求文档(PRD)》比对</td>
-                                 <td className="px-5 py-3.5 text-slate-600">
-                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 whitespace-nowrap border border-orange-100">消耗 1 次</span>
-                                 </td>
-                               </tr>
-                               <tr className="hover:bg-slate-50/50 transition-colors">
-                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-03-05 14:20</td>
-                                 <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="年度采购合同审查记录">年度采购合同审查记录</td>
-                                 <td className="px-5 py-3.5 text-slate-600">
-                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 whitespace-nowrap border border-orange-100">消耗 1 次</span>
-                                 </td>
-                               </tr>
-                             </tbody>
-                           </table>
+                         <div className="flex flex-col gap-4">
+                           <div className="border border-slate-200 rounded-lg overflow-hidden shrink-0">
+                             <table className="w-full text-left text-sm table-fixed">
+                               <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                 <tr>
+                                   <th className="px-5 py-3.5 font-medium w-[140px]">比对时间</th>
+                                   <th className="px-5 py-3.5 font-medium">项目名称</th>
+                                   <th className="px-5 py-3.5 font-medium w-[150px]">消耗扣款</th>
+                                 </tr>
+                               </thead>
+                               <tbody className="divide-y divide-slate-100">
+                                 <tr className="hover:bg-slate-50/50 transition-colors">
+                                   <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-05-02 11:15</td>
+                                   <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="某市第一人民医院门诊楼新建工程">某市第一人民医院门诊楼新建工程</td>
+                                   <td className="px-5 py-3.5 text-slate-600">
+                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 whitespace-nowrap border border-indigo-100">包月畅用 (不扣次)</span>
+                                   </td>
+                                 </tr>
+                                 <tr className="hover:bg-slate-50/50 transition-colors">
+                                   <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-04-16 09:40</td>
+                                   <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="《产品需求文档(PRD)》比对">《产品需求文档(PRD)》比对</td>
+                                   <td className="px-5 py-3.5 text-slate-600">
+                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 whitespace-nowrap border border-orange-100">消耗 1 次</span>
+                                   </td>
+                                 </tr>
+                                 <tr className="hover:bg-slate-50/50 transition-colors">
+                                   <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-03-05 14:20</td>
+                                   <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="年度采购合同审查记录">年度采购合同审查记录</td>
+                                   <td className="px-5 py-3.5 text-slate-600">
+                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 whitespace-nowrap border border-orange-100">消耗 1 次</span>
+                                   </td>
+                                 </tr>
+                               </tbody>
+                             </table>
+                           </div>
+                           <div className="flex items-center justify-between text-sm text-slate-500 px-1">
+                             <div>共 3 条记录</div>
+                             <div className="flex items-center gap-2">
+                               <button 
+                                 disabled={usagePage === 1}
+                                 onClick={() => setUsagePage(p => Math.max(1, p - 1))}
+                                 className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                               >
+                                 <ChevronLeft className="w-4 h-4" />
+                               </button>
+                               <span className="font-medium text-slate-700">{usagePage} / 1</span>
+                               <button 
+                                 disabled={usagePage === 1}
+                                 onClick={() => setUsagePage(p => p + 1)}
+                                 className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                               >
+                                 <ChevronRight className="w-4 h-4" />
+                               </button>
+                             </div>
+                           </div>
                          </div>
                        )}
                     </div>
@@ -434,6 +506,60 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
               )}
 
             </div>
+            
+            {/* Payment Status Overlay */}
+            {paymentStatus !== 'idle' && (
+              <div className="absolute inset-0 z-50 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+                <div className="bg-white rounded-2xl p-8 w-[360px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] flex flex-col items-center border border-slate-100 animate-in zoom-in-95 duration-200">
+                  {paymentStatus === 'paying' && (
+                    <div className="flex flex-col items-center">
+                      <div className="mb-6 relative w-32 h-24 flex items-center justify-center">
+                        {/* Sparkles */}
+                        <div className="absolute top-2 left-2 text-blue-400">✦</div>
+                        <div className="absolute top-0 right-4 text-blue-400 scale-150">✦</div>
+                        <div className="absolute bottom-4 right-2 text-blue-400">✦</div>
+                        
+                        {/* Custom Wallet Illustration */}
+                        <svg width="100" height="80" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="25" y="25" width="50" height="40" rx="6" fill="#D3E2FB"/>
+                          <rect x="65" y="38" width="10" height="14" rx="4" fill="#FFFFFF"/>
+                          <circle cx="70" cy="45" r="2" fill="#4F8AF6"/>
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">支付中，请稍候...</h3>
+                      <p className="text-sm text-slate-500 text-center">正在等待支付中心确认返回结果</p>
+                      <Loader2 className="w-6 h-6 text-indigo-400 animate-spin mt-6" />
+                    </div>
+                  )}
+
+                  {paymentStatus === 'success' && (
+                    <div className="flex flex-col items-center">
+                      <div className="w-20 h-20 mb-6 bg-green-50 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-10 h-10 text-green-500" />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">支付成功！</h3>
+                      <p className="text-sm text-slate-500">感谢您的购买，权益已自动到账</p>
+                    </div>
+                  )}
+
+                  {paymentStatus === 'failed' && (
+                    <div className="flex flex-col items-center">
+                      <div className="w-20 h-20 mb-6 bg-red-50 rounded-full flex items-center justify-center">
+                        <XCircle className="w-10 h-10 text-red-500" />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">支付失败</h3>
+                      <p className="text-sm text-slate-500 mb-6 text-center">抱歉，支付过程中出现异常<br/>请检查网络或更换支付方式后重试</p>
+                      <button 
+                        onClick={() => setPaymentStatus('idle')} 
+                        className="w-full py-2.5 bg-slate-900 text-white rounded-xl shadow-sm hover:bg-slate-800 transition-colors font-medium"
+                      >
+                        重新支付
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

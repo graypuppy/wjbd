@@ -134,6 +134,7 @@ export default function App() {
     economicListType, setEconomicListType,
     showPurchaseModal, setShowPurchaseModal,
     purchaseInitialView, setPurchaseInitialView,
+    pendingComparison, setPendingComparison,
     selectedSku, setSelectedSku,
     comparingProgress, setComparingProgress,
     historyItems, setHistoryItems,
@@ -750,11 +751,16 @@ export default function App() {
       return;
     }
 
+    setPurchaseInitialView('main');
+    setPendingComparison(true);
     setShowPurchaseModal(true);
   };
 
   const handlePaymentSuccess = () => {
     setShowPurchaseModal(false);
+    
+    if (!pendingComparison) return;
+    setPendingComparison(false);
     
     setFiles(files.map(f => f.status === '未比对' ? { 
       ...f, 

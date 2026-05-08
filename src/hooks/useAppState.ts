@@ -92,6 +92,7 @@ export function useAppState() {
   // Purchase & Comparing State
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseInitialView, setPurchaseInitialView] = useState<'main' | 'transfer' | 'records' | 'coupons'>('main');
+  const [pendingComparison, setPendingComparison] = useState(false);
   const [selectedSku, setSelectedSku] = useState<'month' | 'once'>('month');
   const [comparingProgress, setComparingProgress] = useState<{
     currentTypeIndex: number;
@@ -162,6 +163,7 @@ export function useAppState() {
     economicListType, setEconomicListType,
     showPurchaseModal, setShowPurchaseModal,
     purchaseInitialView, setPurchaseInitialView,
+    pendingComparison, setPendingComparison,
     selectedSku, setSelectedSku,
     comparingProgress, setComparingProgress,
     historyItems, setHistoryItems,
