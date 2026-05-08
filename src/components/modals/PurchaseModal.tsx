@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check, ChevronRight } from 'lucide-react';
 
@@ -10,7 +10,20 @@ interface PurchaseModalProps {
   onPaymentSuccess: () => void;
 }
 
+type ViewState = 'main' | 'transfer' | 'records' | 'coupons';
+
 export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelectedSku, onPaymentSuccess }: PurchaseModalProps) {
+  const [view, setView] = useState<ViewState>('main');
+  const [showTransferAlert, setShowTransferAlert] = useState(false);
+
+  // Reset view when modal opens/closes
+  React.useEffect(() => {
+    if (isOpen) {
+      setView('main');
+      setShowTransferAlert(false);
+    }
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -18,7 +31,11 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
           <div className="bg-white w-[800px] rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h3 className="text-lg font-medium text-slate-800">充值</h3>
+              <h3 className="text-lg font-medium text-slate-800">
+                {view === 'transfer' ? '对公转账' : 
+                 view === 'records' ? '充值记录' : 
+                 view === 'coupons' ? '优惠券' : '充值'}
+              </h3>
               <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
@@ -26,119 +43,283 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
             
             {/* Content */}
             <div className="p-6 bg-[#F5F8FF] flex-1">
-              {/* Blue Bar */}
-              <div className="bg-[#6B9DF8] text-white px-4 py-2.5 rounded-t-lg flex justify-between items-center">
-                <span className="font-medium">请选择购买方案</span>
-                <div className="text-sm opacity-90 space-x-3">
-                  <a href="#" className="hover:underline">对公转账</a>
-                  <span>|</span>
-                  <a href="#" className="hover:underline">充值记录</a>
-                  <span>|</span>
-                  <a href="#" className="hover:underline">优惠券</a>
-                </div>
-              </div>
-              
-              <div className="bg-white p-6 rounded-b-lg border border-t-0 border-slate-200 shadow-sm space-y-6">
-                {/* Product Info */}
-                <div className="flex items-start gap-4">
-                  <span className="text-slate-600 mt-1 whitespace-nowrap">购买商品：</span>
-                  <div className="flex gap-3">
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-serif text-2xl font-bold">
-                      T
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-lg">多版本文件比对-高级套餐</h4>
-                      <p className="text-sm text-slate-500 mt-1">支持资信标、技术标、经济标及底层设备特征的深度比对分析</p>
+              {view === 'main' && (
+                <>
+                  {/* Blue Bar */}
+                  <div className="bg-[#6B9DF8] text-white px-5 py-3 rounded-t-lg flex justify-between items-center">
+                    <span className="font-medium text-lg">请选择购买方案</span>
+                    <div className="text-sm opacity-90 flex items-center gap-3">
+                      <button onClick={() => setView('transfer')} className="hover:text-white text-white/90 transition-colors">对公转账</button>
+                      <span className="text-white/40">|</span>
+                      <button onClick={() => setView('records')} className="hover:text-white text-white/90 transition-colors">充值记录</button>
+                      <span className="text-white/40">|</span>
+                      <button onClick={() => setView('coupons')} className="border border-white/50 px-2 py-0.5 rounded text-white hover:bg-white/20 transition-all shadow-sm">优惠券</button>
                     </div>
                   </div>
-                </div>
-                
-                {/* SKUs */}
-                <div className="flex items-start gap-4">
-                  <span className="text-slate-600 mt-2 whitespace-nowrap">选择套餐：</span>
-                  <div className="flex gap-4 flex-1">
-                    {/* Month SKU */}
-                    <div 
-                      className={`relative flex-1 border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedSku === 'month' ? 'border-blue-600 bg-blue-50/30' : 'border-slate-200 hover:border-blue-300'}`}
-                      onClick={() => setSelectedSku('month')}
-                    >
-                      {selectedSku === 'month' && (
-                        <div className="absolute top-0 right-0 bg-blue-600 text-white rounded-bl-lg rounded-tr-sm p-0.5">
-                          <Check className="w-4 h-4" />
+                  
+                  <div className="bg-white p-6 rounded-b-lg border border-t-0 border-slate-200 shadow-sm space-y-6">
+                    {/* Product Info */}
+                    <div className="flex items-start gap-4">
+                      <span className="text-slate-600 mt-1 whitespace-nowrap">购买商品：</span>
+                      <div className="flex gap-3">
+                        <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-serif text-2xl font-bold font-mono">
+                          T
                         </div>
-                      )}
-                      <div className="font-bold text-lg text-slate-800">包月套餐</div>
-                      <div className="text-xs text-slate-500 mt-1">30天内不限次比对</div>
-                      <div className="mt-3 flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-blue-600">¥299</span>
-                        <span className="text-sm text-slate-400 line-through">¥399</span>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-lg">多版本文件比对-高级套餐</h4>
+                          <p className="text-sm text-slate-500 mt-1">支持资信标、技术标、经济标及底层设备特征的深度比对分析</p>
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-400 mt-1">约9.9元/天</div>
                     </div>
                     
-                    {/* Once SKU */}
-                    <div 
-                      className={`relative flex-1 border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedSku === 'once' ? 'border-blue-600 bg-blue-50/30' : 'border-slate-200 hover:border-blue-300'}`}
-                      onClick={() => setSelectedSku('once')}
-                    >
-                      {selectedSku === 'once' && (
-                        <div className="absolute top-0 right-0 bg-blue-600 text-white rounded-bl-lg rounded-tr-sm p-0.5">
-                          <Check className="w-4 h-4" />
+                    {/* SKUs */}
+                    <div className="flex items-start gap-4">
+                      <span className="text-slate-600 mt-2 whitespace-nowrap">选择套餐：</span>
+                      <div className="flex gap-4 flex-1">
+                        {/* Month SKU */}
+                        <div 
+                          className={`relative flex-1 border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedSku === 'month' ? 'border-blue-600 bg-blue-50/30' : 'border-slate-200 hover:border-blue-300'}`}
+                          onClick={() => setSelectedSku('month')}
+                        >
+                          {selectedSku === 'month' && (
+                            <div className="absolute top-0 right-0 bg-blue-600 text-white rounded-bl-lg rounded-tr-sm p-0.5">
+                              <Check className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="font-bold text-lg text-slate-800">包月套餐</div>
+                          <div className="text-xs text-slate-500 mt-1">30天内不限次比对</div>
+                          <div className="mt-3 flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-blue-600">¥299</span>
+                            <span className="text-sm text-slate-400 line-through">¥399</span>
+                          </div>
+                          <div className="text-xs text-slate-400 mt-1">约9.9元/天</div>
                         </div>
-                      )}
-                      <div className="font-bold text-lg text-slate-800">单次套餐</div>
-                      <div className="text-xs text-slate-500 mt-1">单次项目比对</div>
-                      <div className="mt-3 flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-blue-600">¥20</span>
-                        <span className="text-sm text-slate-400 line-through">¥30</span>
+                        
+                        {/* Once SKU */}
+                        <div 
+                          className={`relative flex-1 border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedSku === 'once' ? 'border-blue-600 bg-blue-50/30' : 'border-slate-200 hover:border-blue-300'}`}
+                          onClick={() => setSelectedSku('once')}
+                        >
+                          {selectedSku === 'once' && (
+                            <div className="absolute top-0 right-0 bg-blue-600 text-white rounded-bl-lg rounded-tr-sm p-0.5">
+                              <Check className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="font-bold text-lg text-slate-800">单次套餐</div>
+                          <div className="text-xs text-slate-500 mt-1">单次项目比对</div>
+                          <div className="mt-3 flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-blue-600">¥20</span>
+                            <span className="text-sm text-slate-400 line-through">¥30</span>
+                          </div>
+                          <div className="text-xs text-slate-400 mt-1">20元/次</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-400 mt-1">20元/次</div>
                     </div>
-                  </div>
-                </div>
-                
-                {/* Promo */}
-                <div className="flex items-center gap-4">
-                  <span className="text-slate-600 whitespace-nowrap">使用优惠：</span>
-                  <select className="border border-slate-300 rounded px-3 py-1.5 text-sm w-48 outline-none focus:border-blue-500">
-                    <option>暂无优惠券</option>
-                  </select>
-                  <a href="#" className="text-blue-600 text-sm hover:underline ml-2">输入优惠码</a>
-                </div>
-              </div>
-              
-              {/* Payment Area */}
-              <div className="bg-white mt-4 p-6 rounded-lg border border-slate-200 shadow-sm flex justify-between items-center">
-                <div className="flex gap-6 items-center">
-                  {/* QR Code Placeholder */}
-                  <div className="w-32 h-32 border border-slate-200 rounded p-1 relative group bg-white">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=simulate_payment" alt="QR Code" className="w-full h-full opacity-50" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/80">
-                      <button onClick={onPaymentSuccess} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded shadow-sm hover:bg-blue-700">
-                        模拟支付成功
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-600 flex items-baseline gap-2">
-                      需支付: <span className="text-3xl font-bold text-[#D97706]">¥{selectedSku === 'month' ? '299' : '20'}</span>
-                    </div>
-                    <div className="flex items-center gap-1 mt-2 text-sm text-slate-700">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
+                    
+                    {/* Promo */}
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-5">
+                      <div className="flex items-center gap-4">
+                        <span className="text-slate-600 whitespace-nowrap">使用优惠：</span>
+                        <select className="border border-slate-300 bg-white rounded px-3 py-1.5 text-sm w-48 outline-none focus:border-blue-500">
+                          <option>暂无优惠券</option>
+                          <option>新用户专享券 (¥50)</option>
+                        </select>
                       </div>
-                      微信支付
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-600 text-sm whitespace-nowrap">推广码：</span>
+                        <div className="flex items-center">
+                          <input type="text" placeholder="选填" className="border border-slate-300 rounded px-3 py-1.5 text-sm w-32 outline-none focus:border-blue-500 focus:z-10 relative bg-white transition-colors" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Payment Area */}
+                  <div className="bg-white mt-4 p-6 rounded-lg border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div className="flex gap-6 items-center">
+                      {/* QR Code Placeholder */}
+                      <div className="w-32 h-32 border border-slate-200 rounded p-1 relative group bg-white">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=simulate_payment" alt="QR Code" className="w-full h-full opacity-50" />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/80">
+                          <button onClick={onPaymentSuccess} className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded shadow-sm hover:bg-blue-700">
+                            模拟支付成功
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-600 flex items-baseline gap-2">
+                          需支付: <span className="text-3xl font-bold text-[#D97706]">¥{selectedSku === 'month' ? '299' : '20'}</span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-2 text-sm text-slate-700">
+                          <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                          微信支付
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => setView('transfer')} className="text-slate-500 text-sm hover:text-slate-800 flex items-center group">
+                      我要对公转账 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                  
+                  <div className="mt-4 text-xs text-slate-400 text-center">
+                    支付即代表你同意 <a href="#" className="text-blue-500 hover:underline">《用户协议》</a> 及 <a href="#" className="text-blue-500 hover:underline">《隐私协议》</a> ，购买后不支持7天无理由退货
+                  </div>
+                </>
+              )}
+
+              {/* Transfer View */}
+              {view === 'transfer' && (
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 relative">
+                  {showTransferAlert && (
+                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                      <div className="bg-white border border-slate-200 shadow-xl rounded-xl p-6 w-96 text-center animate-in zoom-in-95 duration-200">
+                        <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Check className="w-6 h-6" />
+                        </div>
+                        <h4 className="text-lg font-bold text-slate-800 mb-2">付款信息已提交</h4>
+                        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                          请等待财务核验，欢迎致电商务经理<br/><span className="font-bold text-blue-600 text-base">18906181561</span><br/>获取更多帮助！
+                        </p>
+                        <button 
+                          onClick={() => setShowTransferAlert(false)} 
+                          className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        >
+                          确定
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    对公转账指引
+                  </h4>
+                  <div className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 border border-blue-100">
+                      请通过企业网银或银行柜台汇款至以下账户，并在附言中备注您的账号信息（手机号或邮箱）以便快速核销。转账成功后，可联系客服加快处理。
+                    </div>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden flex flex-col text-sm">
+                      <div className="flex px-6 py-3 border-b border-slate-100 bg-slate-50">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">收款户名</span>
+                        <span className="font-bold text-slate-900">安徽国泰新点软件有限公司</span>
+                      </div>
+                      <div className="flex px-6 py-3 border-b border-slate-100">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">开户银行</span>
+                        <span className="font-bold text-slate-900">招商银行合肥分行创新大道支行</span>
+                      </div>
+                      <div className="flex px-6 py-3 border-b border-slate-100 bg-slate-50">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">收款账号</span>
+                        <span className="font-bold text-slate-900 font-mono tracking-wider text-blue-700">551907108210701</span>
+                      </div>
+                      <div className="flex px-6 py-3 border-b border-slate-100">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">开户行行号</span>
+                        <span className="text-slate-900 font-mono tracking-wider">308361030033</span>
+                      </div>
+                      <div className="flex px-6 py-3 border-b border-slate-100 bg-slate-50">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">税号</span>
+                        <span className="text-slate-900 font-mono tracking-wider">91340100MA2W5D5208</span>
+                      </div>
+                      <div className="flex px-6 py-3 border-b border-slate-100">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">单位地址</span>
+                        <span className="text-slate-900 leading-snug">安徽省合肥市高新区黄山路622号高芯光谷601室</span>
+                      </div>
+                      <div className="flex px-6 py-3 bg-slate-50">
+                        <span className="w-32 text-slate-500 font-medium shrink-0">电话</span>
+                        <span className="text-slate-900 font-mono tracking-wider">0551-64664620</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
+                      <button onClick={() => setView('main')} className="px-5 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors font-medium">返回支付页</button>
+                      <button onClick={() => setShowTransferAlert(true)} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">我已付款</button>
                     </div>
                   </div>
                 </div>
-                <a href="#" className="text-slate-500 text-sm hover:text-slate-800 flex items-center">
-                  我要对公转账 <ChevronRight className="w-4 h-4" />
-                </a>
-              </div>
-              
-              <div className="mt-4 text-xs text-slate-400 text-center">
-                支付即代表你同意 <a href="#" className="text-blue-500 hover:underline">《用户协议》</a> 及 <a href="#" className="text-blue-500 hover:underline">《隐私协议》</a> ，购买后不支持7天无理由退货
-              </div>
+              )}
+
+              {/* Records View */}
+              {view === 'records' && (
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 flex flex-col h-[500px]">
+                  <h4 className="text-xl font-bold text-slate-800 mb-6">充值记录</h4>
+                  <div className="border border-slate-200 rounded-lg overflow-hidden flex-1">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr>
+                          <th className="px-5 py-4 font-medium">充值时间</th>
+                          <th className="px-5 py-4 font-medium">套餐类型</th>
+                          <th className="px-5 py-4 font-medium">金额</th>
+                          <th className="px-5 py-4 font-medium">状态</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr className="hover:bg-slate-50 transition-colors">
+                          <td className="px-5 py-4 text-slate-600 font-mono">2023-11-01 10:23:45</td>
+                          <td className="px-5 py-4 text-slate-900">单次套餐</td>
+                          <td className="px-5 py-4 text-slate-900 font-medium">¥20.00</td>
+                          <td className="px-5 py-4 text-green-600 font-medium flex items-center gap-1"><Check className="w-4 h-4"/> 充值成功</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50 transition-colors">
+                          <td className="px-5 py-4 text-slate-600 font-mono">2023-10-15 14:12:00</td>
+                          <td className="px-5 py-4 text-slate-900">包月套餐</td>
+                          <td className="px-5 py-4 text-slate-900 font-medium">¥299.00</td>
+                          <td className="px-5 py-4 text-green-600 font-medium flex items-center gap-1"><Check className="w-4 h-4"/> 充值成功</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end mt-6">
+                    <button onClick={() => setView('main')} className="px-5 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors font-medium">返回</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Coupons View */}
+              {view === 'coupons' && (
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 flex flex-col h-[500px]">
+                  <h4 className="text-xl font-bold text-slate-800 mb-6">我的优惠券</h4>
+                  <div className="grid gap-4 flex-1 overflow-y-auto content-start">
+                    <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 rounded-xl p-5 flex items-center justify-between shadow-sm relative overflow-hidden">
+                      <div className="absolute -right-4 -top-4 w-16 h-16 bg-red-100 rounded-full opacity-50"></div>
+                      <div className="flex items-center gap-5 relative z-10">
+                        <div className="text-red-500 font-bold tracking-tighter">
+                          <span className="text-2xl mr-0.5">¥</span><span className="text-5xl">50</span>
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-800 text-lg">新用户专享券</div>
+                          <div className="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                            <span className="bg-white/50 px-2 py-0.5 rounded text-red-600">满200元可用</span>
+                            <span>仅限包月套餐</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="relative z-10 pl-6 border-l border-red-200 border-dashed ml-2">
+                        <button onClick={() => { setSelectedSku('month'); setView('main'); }} className="bg-red-500 text-white px-5 py-2 rounded-full text-sm hover:bg-red-600 transition-colors font-medium shadow-md shadow-red-200">去使用</button>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-5 flex items-center justify-between opacity-70">
+                      <div className="flex items-center gap-5">
+                        <div className="text-slate-400 font-bold tracking-tighter">
+                          <span className="text-5xl">8</span><span className="text-2xl ml-1">折</span>
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-700 text-lg">双十一特惠折扣券</div>
+                          <div className="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                            <span className="bg-slate-200 px-2 py-0.5 rounded text-slate-600">无门槛</span>
+                            <span>全场通用</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="pl-6 border-l border-slate-300 border-dashed ml-2 h-full flex items-center">
+                        <span className="text-slate-400 font-medium px-4">已过期</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-6 border-t border-slate-100 pt-6">
+                    <button onClick={() => setView('main')} className="px-5 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors font-medium">返回支付</button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
