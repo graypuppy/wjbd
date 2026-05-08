@@ -133,6 +133,7 @@ export default function App() {
     economicRegion, setEconomicRegion,
     economicListType, setEconomicListType,
     showPurchaseModal, setShowPurchaseModal,
+    purchaseInitialView, setPurchaseInitialView,
     selectedSku, setSelectedSku,
     comparingProgress, setComparingProgress,
     historyItems, setHistoryItems,
@@ -805,6 +806,10 @@ export default function App() {
         setNotifications={setNotifications}
         unreadCount={unreadCount}
         markAllAsRead={markAllAsRead}
+        onOpenRecords={() => {
+          setPurchaseInitialView('records');
+          setShowPurchaseModal(true);
+        }}
       />
 
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -982,6 +987,7 @@ export default function App() {
         selectedSku={selectedSku}
         setSelectedSku={setSelectedSku}
         onPaymentSuccess={handlePaymentSuccess}
+        initialView={purchaseInitialView}
       />
 
       {/* Delete Confirmation Modal */}

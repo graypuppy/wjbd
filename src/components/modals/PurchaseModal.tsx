@@ -2,29 +2,31 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check, ChevronRight } from 'lucide-react';
 
+export type PurchaseViewState = 'main' | 'transfer' | 'records' | 'coupons';
+
 interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedSku: 'month' | 'once';
   setSelectedSku: (sku: 'month' | 'once') => void;
   onPaymentSuccess: () => void;
+  initialView?: PurchaseViewState;
 }
 
-type ViewState = 'main' | 'transfer' | 'records' | 'coupons';
-
-export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelectedSku, onPaymentSuccess }: PurchaseModalProps) {
-  const [view, setView] = useState<ViewState>('main');
+export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelectedSku, onPaymentSuccess, initialView = 'main' }: PurchaseModalProps) {
+  const [view, setView] = useState<PurchaseViewState>(initialView);
   const [showTransferAlert, setShowTransferAlert] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay'>('wechat');
+  const [recordsTab, setRecordsTab] = useState<'recharge' | 'usage'>('recharge');
 
   // Reset view when modal opens/closes
   React.useEffect(() => {
     if (isOpen) {
-      setView('main');
+      setView(initialView);
       setShowTransferAlert(false);
       setPaymentMethod('wechat');
     }
-  }, [isOpen]);
+  }, [isOpen, initialView]);
 
   return (
     <AnimatePresence>
@@ -35,7 +37,7 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <h3 className="text-lg font-medium text-slate-800">
                 {view === 'transfer' ? '对公转账' : 
-                 view === 'records' ? '充值记录' : 
+                 view === 'records' ? '我的订单' : 
                  view === 'coupons' ? '优惠券' : '充值'}
               </h3>
               <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
@@ -53,7 +55,7 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
                     <div className="text-sm opacity-90 flex items-center gap-3">
                       <button onClick={() => setView('transfer')} className="hover:text-white text-white/90 transition-colors">对公转账</button>
                       <span className="text-white/40">|</span>
-                      <button onClick={() => setView('records')} className="hover:text-white text-white/90 transition-colors">充值记录</button>
+                      <button onClick={() => setView('records')} className="hover:text-white text-white/90 transition-colors">我的订单</button>
                       <span className="text-white/40">|</span>
                       <button onClick={() => setView('coupons')} className="border border-white/50 px-2 py-0.5 rounded text-white hover:bg-white/20 transition-all shadow-sm">优惠券</button>
                     </div>
@@ -254,36 +256,131 @@ export default function PurchaseModal({ isOpen, onClose, selectedSku, setSelecte
 
               {/* Records View */}
               {view === 'records' && (
-                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 flex flex-col h-[500px]">
-                  <h4 className="text-xl font-bold text-slate-800 mb-6">充值记录</h4>
-                  <div className="border border-slate-200 rounded-lg overflow-hidden flex-1">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                        <tr>
-                          <th className="px-5 py-4 font-medium">充值时间</th>
-                          <th className="px-5 py-4 font-medium">套餐类型</th>
-                          <th className="px-5 py-4 font-medium">金额</th>
-                          <th className="px-5 py-4 font-medium">状态</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-4 text-slate-600 font-mono">2023-11-01 10:23:45</td>
-                          <td className="px-5 py-4 text-slate-900">单次套餐</td>
-                          <td className="px-5 py-4 text-slate-900 font-medium">¥20.00</td>
-                          <td className="px-5 py-4 text-green-600 font-medium flex items-center gap-1"><Check className="w-4 h-4"/> 充值成功</td>
-                        </tr>
-                        <tr className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-4 text-slate-600 font-mono">2023-10-15 14:12:00</td>
-                          <td className="px-5 py-4 text-slate-900">包月套餐</td>
-                          <td className="px-5 py-4 text-slate-900 font-medium">¥299.00</td>
-                          <td className="px-5 py-4 text-green-600 font-medium flex items-center gap-1"><Check className="w-4 h-4"/> 充值成功</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 flex flex-col h-[600px] overflow-hidden">
+                  <div className="flex items-center justify-between mb-6 shrink-0">
+                    <h4 className="text-xl font-bold text-slate-800">账号与权益</h4>
+                    <button onClick={() => setView('main')} className="px-4 py-1.5 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors font-medium text-sm shadow-sm">
+                      返回购买
+                    </button>
                   </div>
-                  <div className="flex justify-end mt-6">
-                    <button onClick={() => setView('main')} className="px-5 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors font-medium">返回</button>
+                  
+                  <div className="overflow-y-auto pr-2 space-y-6 flex-1 custom-scrollbar">
+                    {/* Account Info & Rights */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="border border-slate-200 p-5 rounded-xl bg-slate-50/50">
+                        <div className="text-slate-500 mb-2 whitespace-nowrap text-sm font-medium">当前账号</div>
+                        <div className="text-2xl font-bold text-slate-800 tracking-tight">13812340000</div>
+                      </div>
+                      <div className="border border-indigo-100 p-5 rounded-xl bg-gradient-to-br from-indigo-50/50 to-blue-50/50">
+                        <div className="text-indigo-600/80 mb-2 whitespace-nowrap text-sm font-medium">当前权益</div>
+                        <div className="space-y-1.5">
+                          <div className="text-sm flex items-center justify-between">
+                            <span className="text-slate-600">包月套餐 (无限次):</span>
+                            <span className="font-semibold text-indigo-700">剩余 30 天</span>
+                          </div>
+                          <div className="text-sm flex items-center justify-between">
+                            <span className="text-slate-600">单次套餐:</span>
+                            <span className="font-semibold text-indigo-700">剩余 3 次</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tabs for Records */}
+                    <div className="pt-2 pb-6">
+                       <div className="flex border-b border-slate-200 mb-4">
+                         <button 
+                           onClick={() => setRecordsTab('recharge')}
+                           className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors -mb-px ${recordsTab === 'recharge' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                         >
+                           充值记录
+                         </button>
+                         <button 
+                           onClick={() => setRecordsTab('usage')}
+                           className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors -mb-px ${recordsTab === 'usage' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                         >
+                           消耗记录
+                         </button>
+                       </div>
+
+                       {recordsTab === 'recharge' && (
+                         <div className="border border-slate-200 rounded-lg overflow-hidden shrink-0">
+                           <table className="w-full text-left text-sm">
+                             <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                               <tr>
+                                 <th className="px-5 py-3.5 font-medium">充值时间</th>
+                                 <th className="px-5 py-3.5 font-medium">商品说明</th>
+                                 <th className="px-5 py-3.5 font-medium">金额</th>
+                                 <th className="px-5 py-3.5 font-medium">状态</th>
+                               </tr>
+                             </thead>
+                             <tbody className="divide-y divide-slate-100">
+                               <tr className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-05-01 10:23:45</td>
+                                 <td className="px-5 py-3.5 text-slate-900 leading-snug">
+                                   包月套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">时长: 30天 (无限次)</span>
+                                 </td>
+                                 <td className="px-5 py-3.5 text-slate-900 font-medium">¥299.00</td>
+                                 <td className="px-5 py-3.5 text-green-600 font-medium whitespace-nowrap"><span className="flex items-center gap-1"><Check className="w-4 h-4"/> 成功</span></td>
+                               </tr>
+                               <tr className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-04-15 14:12:00</td>
+                                 <td className="px-5 py-3.5 text-slate-900 leading-snug">
+                                   单次套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">包含: 5次</span>
+                                 </td>
+                                 <td className="px-5 py-3.5 text-slate-900 font-medium">¥100.00</td>
+                                 <td className="px-5 py-3.5 text-green-600 font-medium whitespace-nowrap"><span className="flex items-center gap-1"><Check className="w-4 h-4"/> 成功</span></td>
+                               </tr>
+                               <tr className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-03-01 09:30:00</td>
+                                 <td className="px-5 py-3.5 text-slate-900 leading-snug">
+                                   单次套餐<br/><span className="text-xs text-slate-500 mt-0.5 inline-block">包含: 1次</span>
+                                 </td>
+                                 <td className="px-5 py-3.5 text-slate-900 font-medium">¥20.00</td>
+                                 <td className="px-5 py-3.5 text-green-600 font-medium whitespace-nowrap"><span className="flex items-center gap-1"><Check className="w-4 h-4"/> 成功</span></td>
+                               </tr>
+                             </tbody>
+                           </table>
+                         </div>
+                       )}
+
+                       {recordsTab === 'usage' && (
+                         <div className="border border-slate-200 rounded-lg overflow-hidden shrink-0">
+                           <table className="w-full text-left text-sm table-fixed">
+                             <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                               <tr>
+                                 <th className="px-5 py-3.5 font-medium w-[140px]">比对时间</th>
+                                 <th className="px-5 py-3.5 font-medium">项目名称</th>
+                                 <th className="px-5 py-3.5 font-medium w-[150px]">消耗扣款</th>
+                               </tr>
+                             </thead>
+                             <tbody className="divide-y divide-slate-100">
+                               <tr className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-05-02 11:15</td>
+                                 <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="某市第一人民医院门诊楼新建工程">某市第一人民医院门诊楼新建工程</td>
+                                 <td className="px-5 py-3.5 text-slate-600">
+                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 whitespace-nowrap border border-indigo-100">包月畅用 (不扣次)</span>
+                                 </td>
+                               </tr>
+                               <tr className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-04-16 09:40</td>
+                                 <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="《产品需求文档(PRD)》比对">《产品需求文档(PRD)》比对</td>
+                                 <td className="px-5 py-3.5 text-slate-600">
+                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 whitespace-nowrap border border-orange-100">消耗 1 次</span>
+                                 </td>
+                               </tr>
+                               <tr className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">2026-03-05 14:20</td>
+                                 <td className="px-5 py-3.5 text-slate-900 font-medium truncate" title="年度采购合同审查记录">年度采购合同审查记录</td>
+                                 <td className="px-5 py-3.5 text-slate-600">
+                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700 whitespace-nowrap border border-orange-100">消耗 1 次</span>
+                                 </td>
+                               </tr>
+                             </tbody>
+                           </table>
+                         </div>
+                       )}
+                    </div>
                   </div>
                 </div>
               )}

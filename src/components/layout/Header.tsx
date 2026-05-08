@@ -17,6 +17,7 @@ interface HeaderProps {
   setNotifications: (notifications: Notification[]) => void;
   unreadCount: number;
   markAllAsRead: () => void;
+  onOpenRecords?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -33,7 +34,27 @@ const Header: React.FC<HeaderProps> = ({
   setNotifications,
   unreadCount,
   markAllAsRead,
+  onOpenRecords,
 }) => {
+  const notificationsRef = React.useRef<HTMLDivElement>(null);
+  const userMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (showNotifications && notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+      if (showUserMenu && userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications, showUserMenu, setShowNotifications, setShowUserMenu]);
+
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -49,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({
           <button className={`font-medium transition-colors ${currentPage === 'rules' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`} onClick={() => setCurrentPage('rules')}>规则配置</button>
         </nav>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative" ref={notificationsRef}>
             <button 
               className="text-slate-400 hover:text-slate-600 transition-colors relative p-2"
               onClick={() => setShowNotifications(!showNotifications)}
@@ -126,8 +147,11 @@ const Header: React.FC<HeaderProps> = ({
             </AnimatePresence>
           </div>
           {isLoggedIn ? (
-            <div className="flex items-center gap-3 relative">
-              <button className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            <div className="flex items-center gap-3 relative" ref={userMenuRef}>
+              <button 
+                onClick={onOpenRecords}
+                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+              >
                 我的订单
               </button>
               <div 
