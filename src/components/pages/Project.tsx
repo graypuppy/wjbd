@@ -15,7 +15,8 @@ import {
   Info, 
   Zap, 
   Briefcase,
-  UploadCloud
+  UploadCloud,
+  ChevronDown
 } from 'lucide-react';
 import { FileItem, Template, PageType } from '../../types';
 import { ALL_CHECK_TYPES, ALL_CREDIT_ITEMS, ALL_TECH_ITEMS, ALL_ECONOMIC_ITEMS, ALL_DEVICE_ITEMS } from '../../constants';
@@ -120,6 +121,12 @@ const Project: React.FC<ProjectProps> = ({
   economicListType,
   setEconomicListType,
 }) => {
+  const [expandedFiles, setExpandedFiles] = React.useState<Record<string, boolean>>({});
+
+  const toggleExpand = (fileId: string) => {
+    setExpandedFiles(prev => ({ ...prev, [fileId]: !prev[fileId] }));
+  };
+
   return (
     <motion.div 
       key="project"
@@ -168,8 +175,8 @@ const Project: React.FC<ProjectProps> = ({
 
       <div className="space-y-6">
         {/* 1. File List */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm relative">
+          <div className="sticky top-16 z-10 px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/95 backdrop-blur-md shadow-sm rounded-t-xl">
             <div>
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-500" />
@@ -207,7 +214,7 @@ const Project: React.FC<ProjectProps> = ({
             {(!files || files.length === 0) ? (
               <div className="text-center py-12">
                 <File className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">暂无文件，请点击上方按钮添加</p>
+                <p className="text-slate-500">暂无文件，请点击下方悬浮按钮添加</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -243,7 +250,7 @@ const Project: React.FC<ProjectProps> = ({
                     </div>
                     {file.subFiles && file.subFiles.length > 0 && (
                       <div className="ml-10 mb-3 pl-3 border-l-2 border-slate-100 space-y-2">
-                        {file.subFiles.map(subFile => (
+                        {file.subFiles.slice(0, expandedFiles[file.id] ? undefined : 3).map(subFile => (
                           <div key={subFile.id} className="flex items-center justify-between bg-slate-50 p-2 rounded-md">
                             <div className="flex items-center gap-2 overflow-hidden">
                               <FileText className="w-4 h-4 text-slate-400 shrink-0" />
@@ -261,6 +268,25 @@ const Project: React.FC<ProjectProps> = ({
                             </select>
                           </div>
                         ))}
+                        {file.subFiles.length > 3 && (
+                          <div className="relative mt-4 mb-2">
+                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                              <div className="w-full border-t border-slate-200"></div>
+                            </div>
+                            <div className="relative flex justify-center">
+                              <button
+                                onClick={() => toggleExpand(file.id)}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2"
+                              >
+                                {expandedFiles[file.id] ? (
+                                  <><span>收起</span><ChevronDown className="w-3.5 h-3.5 rotate-180 transition-transform" /></>
+                                ) : (
+                                  <><span>展开全部 {file.subFiles.length} 个文件</span><ChevronDown className="w-3.5 h-3.5 transition-transform" /></>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -495,7 +521,7 @@ const Project: React.FC<ProjectProps> = ({
                     <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100 relative group">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-slate-700">语句雷同判定阈值 <span className="text-slate-400 font-normal text-xs">(仅作用于技术标)</span></span>
+                          <span className="text-sm font-medium text-slate-700">语句雷同判定阈值 <span className="text-slate-400 font-normal text-xs">(推荐 80%，仅作用于技术标)</span></span>
                           <div className="relative flex items-center cursor-help">
                             <Info className="w-3.5 h-3.5 text-slate-400" />
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-slate-800 text-white text-[11px] rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
@@ -541,15 +567,15 @@ const Project: React.FC<ProjectProps> = ({
                       </div>
                       <input 
                         type="range" 
-                        min="0" 
-                        max="100" 
+                        min="30" 
+                        max="80" 
                         value={riskThreshold} 
                         onChange={(e) => setRiskThreshold(parseInt(e.target.value))}
                         className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500"
                       />
                       <div className="flex justify-between mt-1">
-                        <span className="text-[10px] text-slate-400 font-medium">0% (极易触发红线)</span>
-                        <span className="text-[10px] text-slate-400 font-medium">100% (极难触发红线)</span>
+                        <span className="text-[10px] text-slate-400 font-medium">30% (极易触发红线)</span>
+                        <span className="text-[10px] text-slate-400 font-medium">80% (极难触发红线)</span>
                       </div>
                     </div>
                   </div>
@@ -617,6 +643,8 @@ const Project: React.FC<ProjectProps> = ({
           </div>
         </div>
       </div>
+
+        {/* Floating Action Bar removed */}
     </motion.div>
   );
 };

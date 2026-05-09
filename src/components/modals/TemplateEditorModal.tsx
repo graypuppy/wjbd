@@ -232,7 +232,7 @@ export default function TemplateEditorModal({
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                语句雷同判定阈值 ({editingTemplate.config.sentenceThreshold}%)
+                语句雷同判定阈值 (推荐80%): {editingTemplate.config.sentenceThreshold}%
               </label>
               <input 
                 type="range" 
@@ -257,8 +257,8 @@ export default function TemplateEditorModal({
               </label>
               <input 
                 type="range" 
-                min="0" 
-                max="100" 
+                min="30" 
+                max="80" 
                 step="5"
                 value={editingTemplate.config.riskThreshold}
                 onChange={e => setEditingTemplate({
@@ -268,8 +268,8 @@ export default function TemplateEditorModal({
                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500"
               />
               <div className="flex justify-between text-xs text-slate-400 mt-1">
-                <span>0%</span>
-                <span>100%</span>
+                <span>30%</span>
+                <span>80%</span>
               </div>
             </div>
           </div>
