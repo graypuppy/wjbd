@@ -41,8 +41,16 @@ const TechTab: React.FC<TechTabProps> = ({
   const [internalFileB, setInternalFileB] = useState('技术标.pdf');
   const [activeDuplicateId, setActiveDuplicateId] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [sortBySimilarity, setSortBySimilarity] = useState(false);
 
   const textMatrix = useMemo(() => generateMockSimilarityMatrix(comparingFiles), [comparingFiles]);
+
+  const displayedDuplicates = useMemo(() => {
+    if (sortBySimilarity) {
+      return [...mockDuplicates].sort((a, b) => parseInt(b.similarity) - parseInt(a.similarity));
+    }
+    return mockDuplicates;
+  }, [mockDuplicates, sortBySimilarity]);
 
   const pdfARef = useRef<HTMLDivElement>(null);
   const pdfBRef = useRef<HTMLDivElement>(null);
@@ -326,6 +334,17 @@ const TechTab: React.FC<TechTabProps> = ({
                 </div>
               </div>
               <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 border-r border-slate-200 pr-4 mr-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 font-medium hover:text-slate-900 transition-colors">
+                    <input 
+                      type="checkbox" 
+                      checked={sortBySimilarity} 
+                      onChange={(e) => setSortBySimilarity(e.target.checked)}
+                      className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                    />
+                    根据重复度排序
+                  </label>
+                </div>
                 <span className="text-xs text-slate-500">
                   发现 {mockDuplicates.length} 处高度相似段落
                 </span>
@@ -341,7 +360,7 @@ const TechTab: React.FC<TechTabProps> = ({
               {/* Left: Duplicates List */}
               <div className="w-80 border-r border-slate-200 bg-white flex flex-col">
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {mockDuplicates.map(dup => (
+                  {displayedDuplicates.map(dup => (
                     <button 
                       key={dup.id}
                       onClick={() => handleDuplicateClick(dup)}

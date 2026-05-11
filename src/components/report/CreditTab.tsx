@@ -23,13 +23,37 @@ const CreditTab: React.FC<CreditTabProps> = ({
   setPdfPreviewState,
   isExporting,
 }) => {
+  const [showOnlyAnomalies, setShowOnlyAnomalies] = React.useState(false);
+
+  const filteredData = React.useMemo(() => {
+    if (!showOnlyAnomalies) return mockCreditDataByField;
+    return mockCreditDataByField.filter(row => {
+      return row.files.some(fileData => {
+        return fileData.values.some(val => {
+          return row.files.filter(f => f.fileId !== fileData.fileId && f.values.includes(val)).length > 0;
+        });
+      });
+    });
+  }, [mockCreditDataByField, showOnlyAnomalies]);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       {isExporting && <h2 className="text-2xl font-bold text-slate-800 border-b pb-2 m-5 mb-0">资信标比对</h2>}
       <div className="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500"/> 资信标特征矩阵</h3>
-        <div className="text-xs text-slate-500 flex items-center gap-2">
-          <span className="w-3 h-3 bg-red-100 border border-red-300 rounded-sm inline-block"></span> 标红代表存在重复风险 (多份文件信息一致)
+        <div className="flex items-center gap-6">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 font-medium hover:text-slate-900 transition-colors">
+            <input 
+              type="checkbox" 
+              checked={showOnlyAnomalies} 
+              onChange={(e) => setShowOnlyAnomalies(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+            />
+            仅显示重复异常项
+          </label>
+          <div className="text-xs text-slate-500 flex items-center gap-2 border-l border-slate-200 pl-6">
+            <span className="w-3 h-3 bg-red-100 border border-red-300 rounded-sm inline-block"></span> 标红代表存在重复风险 (多份文件信息一致)
+          </div>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -45,69 +69,77 @@ const CreditTab: React.FC<CreditTabProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {mockCreditDataByField.map((row, rowIdx) => (
-              <tr key={row.field} className="hover:bg-slate-50 transition-colors">
-                <td className="py-4 px-5 font-medium text-slate-800 border-r border-slate-200 bg-white sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                  {row.field}
+            {filteredData.length === 0 ? (
+              <tr>
+                <td colSpan={comparingFiles.length + 1} className="py-12 text-center text-slate-500">
+                  没有发现重复异常项
                 </td>
-                {row.files.map((fileData, colIdx) => {
-                  return (
-                    <td key={fileData.fileId} className="py-4 px-5 text-sm border-r border-slate-200 align-top">
-                      <div className="flex flex-col gap-2">
-                        {fileData.values.map((val, valIdx) => {
-                          const otherFilesWithValue = row.files.filter(f => f.fileId !== fileData.fileId && f.values.includes(val));
-                          const isDup = otherFilesWithValue.length > 0;
-                          
-                          return (
-                            <div 
-                              key={valIdx}
-                              onClick={() => {
-                                const generateOccurrences = (str: string) => (str.length % 3) + 2; // Returns 2 to 4
-                                const duplicates = otherFilesWithValue.map(f => ({ 
-                                  fileName: f.fileName, 
-                                  internalFile: f.internalFile, 
-                                  value: val,
-                                  occurrencesCount: generateOccurrences(f.fileName)
-                                }));
-                                setPdfPreviewState({
-                                  isOpen: true,
-                                  fileName: fileData.fileName,
-                                  internalFile: fileData.internalFile,
-                                  value: val,
-                                  type: row.field,
-                                  contentType: 'text',
-                                  occurrencesCount: generateOccurrences(fileData.fileName),
-                                  duplicates: isDup ? duplicates : undefined
-                                });
-                              }}
-                              className={`p-2 rounded-md border cursor-pointer transition-colors relative group ${
-                                isDup 
-                                  ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' 
-                                  : 'bg-white border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
-                              }`}
-                            >
-                              <div className="flex items-start gap-1.5">
-                                {isDup && <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />}
-                                <span className={`break-all ${isDup ? 'font-bold' : ''}`}>{val}</span>
-                              </div>
-                              
-                              {isDup && (
-                                <div className="absolute z-50 hidden group-hover:block bg-slate-800 text-white text-xs rounded p-2 shadow-lg -top-10 left-0 whitespace-nowrap">
-                                  <div className="font-bold mb-1">重复预警</div>
-                                  <div>与以下文件内容完全一致:</div>
-                                  <div className="text-slate-300 mt-0.5">{otherFilesWithValue.map(f => f.fileName).join(', ')}</div>
-                                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-800 transform rotate-45"></div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </td>
-                  );
-                })}
               </tr>
-            ))}
+            ) : (
+              filteredData.map((row) => (
+                <tr key={row.field} className="hover:bg-slate-50 transition-colors">
+                  <td className="py-4 px-5 font-medium text-slate-800 border-r border-slate-200 bg-white sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    {row.field}
+                  </td>
+                  {row.files.map((fileData) => {
+                    return (
+                      <td key={fileData.fileId} className="py-4 px-5 text-sm border-r border-slate-200 align-top">
+                        <div className="flex flex-col gap-2">
+                          {fileData.values.map((val, valIdx) => {
+                            const otherFilesWithValue = row.files.filter(f => f.fileId !== fileData.fileId && f.values.includes(val));
+                            const isDup = otherFilesWithValue.length > 0;
+                            
+                            return (
+                              <div 
+                                key={valIdx}
+                                onClick={() => {
+                                  const generateOccurrences = (str: string) => (str.length % 3) + 2; // Returns 2 to 4
+                                  const duplicates = otherFilesWithValue.map(f => ({ 
+                                    fileName: f.fileName, 
+                                    internalFile: f.internalFile, 
+                                    value: val,
+                                    occurrencesCount: generateOccurrences(f.fileName)
+                                  }));
+                                  setPdfPreviewState({
+                                    isOpen: true,
+                                    fileName: fileData.fileName,
+                                    internalFile: fileData.internalFile,
+                                    value: val,
+                                    type: row.field,
+                                    contentType: 'text',
+                                    occurrencesCount: generateOccurrences(fileData.fileName),
+                                    duplicates: isDup ? duplicates : undefined
+                                  });
+                                }}
+                                className={`p-2 rounded-md border cursor-pointer transition-colors relative group ${
+                                  isDup 
+                                    ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' 
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
+                                }`}
+                              >
+                                <div className="flex items-start gap-1.5">
+                                  {isDup && <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />}
+                                  <span className={`break-all ${isDup ? 'font-bold' : ''}`}>{val}</span>
+                                </div>
+                                
+                                {isDup && (
+                                  <div className="absolute z-50 hidden group-hover:block bg-slate-800 text-white text-xs rounded p-2 shadow-lg -top-10 left-0 whitespace-nowrap">
+                                    <div className="font-bold mb-1">重复预警</div>
+                                    <div>与以下文件内容完全一致:</div>
+                                    <div className="text-slate-300 mt-0.5">{otherFilesWithValue.map(f => f.fileName).join(', ')}</div>
+                                    <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-800 transform rotate-45"></div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
