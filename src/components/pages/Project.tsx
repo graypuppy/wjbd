@@ -521,30 +521,41 @@ const Project: React.FC<ProjectProps> = ({
                     <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100 relative group">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-slate-700">语句雷同判定阈值 <span className="text-slate-400 font-normal text-xs">(推荐 80%，仅作用于技术标)</span></span>
+                          <span className="text-sm font-medium text-slate-700">语句雷同判定阈值 <span className="text-slate-400 font-normal text-xs">(推荐标准，仅作用于技术标)</span></span>
                           <div className="relative flex items-center cursor-help">
                             <Info className="w-3.5 h-3.5 text-slate-400" />
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2.5 bg-slate-800 text-white text-[11px] rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 pointer-events-none">
-                              该阈值决定了技术标中单句或段落内容重复百分之多少才被判定为“雷同”。<br/><br/>
-                              例如设置为80%：一句话中如有80%以上内容与另一份标书完全一致，才会被标记为雷同段落。<br/>
-                              <span className="text-indigo-300">适用场景：若不希望常规套话(如法律声明)被标红，可适当调高此值。此阈值仅在技术标比对中生效。</span>
+                              该阈值决定了技术标中单句或段落内容重复到什么程度才被判定为“雷同”。<br/><br/>
+                              例如设置为“标准”：一句话中如有较多内容与另一份标书完全一致，才会被标记为雷同段落。<br/>
+                              <span className="text-indigo-300">适用场景：若不希望常规套话(如法律声明)被标红，可选择较宽松。此阈值仅在技术标比对中生效。</span>
                               <div className="absolute w-2 h-2 bg-slate-800 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
                             </div>
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{sentenceThreshold}%</span>
+                        <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                          {sentenceThreshold === 60 ? '严格' : sentenceThreshold === 70 ? '较严格' : sentenceThreshold === 80 ? '标准' : sentenceThreshold === 90 ? '较宽松' : '宽松'}
+                        </span>
                       </div>
-                      <input 
-                        type="range" 
-                        min="60" 
-                        max="100" 
-                        value={sentenceThreshold} 
-                        onChange={(e) => setSentenceThreshold(parseInt(e.target.value))}
-                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                      />
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[10px] text-slate-400 font-medium">60% (严格，容错度低)</span>
-                        <span className="text-[10px] text-slate-400 font-medium">100% (宽松，必须完全一致)</span>
+                      <div className="flex bg-slate-200/50 p-1 rounded-lg">
+                        {[
+                          { label: '严格', value: 60 },
+                          { label: '较严格', value: 70 },
+                          { label: '标准', value: 80 },
+                          { label: '较宽松', value: 90 },
+                          { label: '宽松', value: 100 },
+                        ].map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setSentenceThreshold(opt.value)}
+                            className={`flex-1 text-xs py-1.5 font-medium rounded-md transition-all duration-200 ${
+                              Math.abs(sentenceThreshold - opt.value) < 5 || sentenceThreshold === opt.value
+                                ? 'bg-white text-indigo-600 shadow-sm' 
+                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
 

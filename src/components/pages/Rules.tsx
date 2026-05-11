@@ -87,7 +87,12 @@ const Rules: React.FC<RulesProps> = ({
                 <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-[11px] text-slate-500 mb-1">语句雷同阈值 (仅技术标)</div>
-                    <div className="font-medium text-slate-700 text-sm">{tpl.config.sentenceThreshold}%</div>
+                    <div className="font-medium text-slate-700 text-sm">
+                      {tpl.config.sentenceThreshold === 60 ? '严格' : 
+                       tpl.config.sentenceThreshold === 70 ? '较严格' : 
+                       tpl.config.sentenceThreshold === 80 ? '标准' : 
+                       tpl.config.sentenceThreshold === 90 ? '较宽松' : '宽松'}
+                    </div>
                   </div>
                   <div>
                     <div className="text-[11px] text-slate-500 mb-1">重复风险阈值 (仅技术标)</div>

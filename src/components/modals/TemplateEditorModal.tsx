@@ -231,28 +231,41 @@ export default function TemplateEditorModal({
           {/* Thresholds */}
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                语句雷同判定阈值 (推荐80%): {editingTemplate.config.sentenceThreshold}%
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                语句雷同判定阈值 (推荐标准): {
+                  editingTemplate.config.sentenceThreshold === 60 ? '严格' :
+                  editingTemplate.config.sentenceThreshold === 70 ? '较严格' :
+                  editingTemplate.config.sentenceThreshold === 80 ? '标准' :
+                  editingTemplate.config.sentenceThreshold === 90 ? '较宽松' : '宽松'
+                }
               </label>
-              <input 
-                type="range" 
-                min="60" 
-                max="100" 
-                step="5"
-                value={editingTemplate.config.sentenceThreshold}
-                onChange={e => setEditingTemplate({
-                  ...editingTemplate,
-                  config: { ...editingTemplate.config, sentenceThreshold: parseInt(e.target.value) }
-                })}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-              />
-              <div className="flex justify-between text-xs text-slate-400 mt-1">
-                <span>60%</span>
-                <span>100%</span>
+              <div className="flex bg-slate-200/50 p-1 rounded-lg">
+                {[
+                  { label: '严格', value: 60 },
+                  { label: '较严格', value: 70 },
+                  { label: '标准', value: 80 },
+                  { label: '较宽松', value: 90 },
+                  { label: '宽松', value: 100 },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setEditingTemplate({
+                      ...editingTemplate,
+                      config: { ...editingTemplate.config, sentenceThreshold: opt.value }
+                    })}
+                    className={`flex-1 text-xs py-1.5 font-medium rounded-md transition-all duration-200 ${
+                      Math.abs(editingTemplate.config.sentenceThreshold - opt.value) < 5 || editingTemplate.config.sentenceThreshold === opt.value
+                        ? 'bg-white text-indigo-600 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 整体重复风险阈值 ({editingTemplate.config.riskThreshold}%)
               </label>
               <input 

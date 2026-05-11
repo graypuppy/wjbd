@@ -1,5 +1,5 @@
-import React from 'react';
-import { Clock, FileSearch, Fingerprint, Cpu, AlertTriangle } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Clock, FileSearch, Fingerprint, Cpu, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface OverviewSectionProps {
   projectName: string;
@@ -31,6 +31,71 @@ export default function OverviewSection({
   comparingFiles,
   isExporting
 }: OverviewSectionProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+
+  const riskItems = useMemo(() => [
+    {
+      id: 1,
+      typeLabel: '设备特征 - MAC地址',
+      typeStyles: 'bg-purple-50 text-purple-700 border-purple-200',
+      description: '发现完全相同的 MAC 地址 (00:1A:2B:3C:4D:5E)',
+      files: comparingFiles.slice(0, 2).map(f => f.name).join(', '),
+      tab: 'device',
+    },
+    {
+      id: 2,
+      typeLabel: '技术标 - 语句雷同',
+      typeStyles: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      description: '安全保证措施章节存在 100% 相似段落',
+      files: comparingFiles.slice(0, 2).map(f => f.name).join(', '),
+      tab: 'tech',
+    },
+    {
+      id: 3,
+      typeLabel: '经济标 - 计价锁号',
+      typeStyles: 'bg-amber-50 text-amber-700 border-amber-200',
+      description: '提取到相同的广联达计价软件加密锁号',
+      files: [comparingFiles[0]?.name, comparingFiles[2]?.name].filter(Boolean).join(', '),
+      tab: 'economic',
+    },
+    {
+      id: 4,
+      typeLabel: '设备特征 - 硬盘序列号',
+      typeStyles: 'bg-purple-50 text-purple-700 border-purple-200',
+      description: '发现完全相同的硬盘序列号 (WD-WCC6YABCD123)',
+      files: comparingFiles.slice(1, 3).map(f => f.name).join(', '),
+      tab: 'device',
+    },
+    {
+      id: 5,
+      typeLabel: '资信标 - 法定代表人',
+      typeStyles: 'bg-blue-50 text-blue-700 border-blue-200',
+      description: '法定代表人名称"陈大明"完全一致',
+      files: comparingFiles.slice(0, 2).map(f => f.name).join(', '),
+      tab: 'credit',
+    },
+    {
+      id: 6,
+      typeLabel: '技术标 - 敏感词',
+      typeStyles: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      description: '包含"打点"、"通融"等敏感词汇',
+      files: comparingFiles.slice(0, 1).map(f => f.name).join(', '),
+      tab: 'tech',
+    },
+    {
+      id: 7,
+      typeLabel: '经济标 - 定额子目',
+      typeStyles: 'bg-amber-50 text-amber-700 border-amber-200',
+      description: '定额子目相似度过高 (>95%)',
+      files: [comparingFiles[1]?.name, comparingFiles[2]?.name].filter(Boolean).join(', '),
+      tab: 'economic',
+    }
+  ], [comparingFiles]);
+
+  const totalPages = Math.ceil(riskItems.length / itemsPerPage);
+  const currentRiskItems = riskItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-6">
       {isExporting && <h2 className="text-2xl font-bold text-slate-800 border-b pb-2 mt-8">结果概览</h2>}
@@ -128,7 +193,7 @@ export default function OverviewSection({
         <div className="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
           <h3 className="font-bold text-slate-800 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-red-500"/> 高风险项汇总</h3>
         </div>
-        <div className="p-0">
+        <div className="p-0 flex flex-col">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500">
@@ -138,39 +203,52 @@ export default function OverviewSection({
                 <th className="py-3 px-5 font-medium text-right">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              <tr className="hover:bg-slate-50 transition-colors">
-                <td className="py-4 px-5">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">设备特征 - MAC地址</span>
-                </td>
-                <td className="py-4 px-5 text-sm text-slate-700 font-medium">发现完全相同的 MAC 地址 (00:1A:2B:3C:4D:5E)</td>
-                <td className="py-4 px-5 text-sm text-slate-500">{comparingFiles.slice(0, 2).map(f => f.name).join(', ')}</td>
-                <td className="py-4 px-5 text-right">
-                  <button onClick={() => setReportTab('device')} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">查看详情</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-50 transition-colors">
-                <td className="py-4 px-5">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">技术标 - 语句雷同</span>
-                </td>
-                <td className="py-4 px-5 text-sm text-slate-700 font-medium">安全保证措施章节存在 100% 相似段落</td>
-                <td className="py-4 px-5 text-sm text-slate-500">{comparingFiles.slice(0, 2).map(f => f.name).join(', ')}</td>
-                <td className="py-4 px-5 text-right">
-                  <button onClick={() => setReportTab('tech')} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">查看详情</button>
-                </td>
-              </tr>
-              <tr className="hover:bg-slate-50 transition-colors">
-                <td className="py-4 px-5">
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">经济标 - 计价锁号</span>
-                </td>
-                <td className="py-4 px-5 text-sm text-slate-700 font-medium">提取到相同的广联达计价软件加密锁号</td>
-                <td className="py-4 px-5 text-sm text-slate-500">{[comparingFiles[0]?.name, comparingFiles[2]?.name].filter(Boolean).join(', ')}</td>
-                <td className="py-4 px-5 text-right">
-                  <button onClick={() => setReportTab('economic')} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">查看详情</button>
-                </td>
-              </tr>
+            <tbody className="divide-y divide-slate-100 min-h-[220px]">
+              {currentRiskItems.map(item => (
+                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="py-4 px-5">
+                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${item.typeStyles}`}>
+                      {item.typeLabel}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 text-sm text-slate-700 font-medium">{item.description}</td>
+                  <td className="py-4 px-5 text-sm text-slate-500">{item.files}</td>
+                  <td className="py-4 px-5 text-right">
+                    <button onClick={() => setReportTab(item.tab as any)} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">查看详情</button>
+                  </td>
+                </tr>
+              ))}
+              {Array.from({ length: itemsPerPage - currentRiskItems.length }).map((_, idx) => (
+                <tr key={`empty-${idx}`} className="h-[69px]">
+                  <td colSpan={4}></td>
+                </tr>
+              ))}
             </tbody>
           </table>
+          <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-white text-sm text-slate-600">
+            <div>
+              显示 {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, riskItems.length)} 项，共 {riskItems.length} 项
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="px-2 font-medium text-slate-700">
+                {currentPage} / {totalPages}
+              </div>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
